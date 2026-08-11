@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#faf9f5">
+<title>タスク</title>
+<style>
+:root{--ink:#1c1c1a;--ink2:#4a4a46;--ink3:#75746e;--line:#e2e0d8;--bg:#faf9f5;--card:#fff;
+--red:#b8352b;--redbg:#fbeceb;--amber:#a35b0a;--amberbg:#fdf2e3;--green:#2f6b4a;--greenbg:#eaf3ed;
+--blue:#2d5b8e;--bluebg:#eaf0f7;--gray:#8a8880}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;padding:0 0 40px;background:var(--bg);color:var(--ink);
+font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Yu Gothic",Meiryo,sans-serif;
+font-size:15px;line-height:1.8;-webkit-font-smoothing:antialiased}
+.wrap{max-width:820px;margin:0 auto;padding:0 16px}
+header{padding:26px 0 16px;border-bottom:2px solid var(--ink)}
+.eyebrow{font-size:11.5px;letter-spacing:.13em;color:var(--ink3);margin:0 0 5px}
+h1{font-size:23px;margin:0 0 6px;font-weight:700}
+.meta{font-size:12.5px;color:var(--ink3);margin:0}
+
+.statusbar{position:sticky;top:0;z-index:40;margin:0 -16px;padding:9px 16px;
+background:rgba(250,249,245,.97);border-bottom:1px solid var(--line);
+display:flex;gap:10px;align-items:center;font-size:12.5px;backdrop-filter:blur(6px)}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--gray);flex:0 0 auto}
+.dot.ok{background:var(--green)}.dot.pend{background:var(--amber)}.dot.err{background:var(--red)}
+.sync{flex:1;color:var(--ink2)}
+.statusbar button{border:1px solid var(--line);background:#fff;border-radius:16px;padding:5px 12px;
+font-size:12px;font-family:inherit;color:var(--ink2)}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:14px 0 6px}
+.bar i{display:block;height:100%;background:var(--green);width:0;transition:width .3s}
+.cnt{font-size:12.5px;color:var(--ink3);margin:0 0 4px}
+
+.banner{background:var(--greenbg);border-left:4px solid var(--green);border-radius:0 8px 8px 0;
+padding:13px 16px;margin:14px 0 0;font-size:13.5px}
+.notice{background:var(--amberbg);border:1px solid #e8cfa4;border-radius:9px;padding:11px 14px;
+font-size:12.5px;color:var(--ink2);margin:12px 0 0}
+
+.filters{display:flex;gap:7px;margin:18px 0 4px;overflow-x:auto;padding-bottom:4px}
+.filters button{flex:0 0 auto;border:1px solid var(--line);background:#fbfaf7;border-radius:18px;
+padding:7px 14px;font-size:13px;font-family:inherit;font-weight:700;color:var(--ink3)}
+.filters button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+
+h2{font-size:16.5px;margin:30px 0 2px;padding-bottom:6px;border-bottom:1px solid var(--line);font-weight:700}
+.item{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:9px 0}
+.item[data-status="done"]{opacity:.5;border-left:3px solid var(--green)}
+.item[data-status="done"] .t{text-decoration:line-through;text-decoration-color:#b7b4a8}
+.item[data-status="doing"]{border-left:3px solid var(--blue);background:#f7fafd}
+.item[data-status="skip"]{opacity:.5;border-left:3px solid var(--gray)}
+.item[data-g="today"]{border-left:3px solid var(--red)}
+.item[data-g="today"][data-status="done"]{border-left-color:var(--green)}
+.top{display:flex;gap:10px;align-items:baseline}
+.id{flex:0 0 auto;font-weight:700;font-size:13px;color:var(--ink3);min-width:32px}
+.txt{flex:1}
+.t{font-weight:700;font-size:14.5px;display:block}
+.cl{font-size:11.5px;color:var(--blue);font-weight:700;display:inline-block;margin-right:6px}
+.s{font-size:12.5px;color:var(--ink3);display:block;margin-top:2px}
+.due{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:4px;margin-right:6px;
+background:#eceadf;color:var(--ink3)}
+.item[data-g="today"] .due{background:var(--amber);color:#fff}
+.chips{display:flex;gap:6px;margin:10px 0 0 42px;flex-wrap:wrap}
+.chip{min-width:56px;text-align:center;padding:8px 12px;border:1px solid var(--line);border-radius:20px;
+background:#fbfaf7;font-size:13px;font-weight:700;color:var(--ink3);font-family:inherit}
+.chip[aria-pressed="true"][data-v="done"]{background:var(--green);border-color:var(--green);color:#fff}
+.chip[aria-pressed="true"][data-v="doing"]{background:var(--blue);border-color:var(--blue);color:#fff}
+.chip[aria-pressed="true"][data-v="skip"]{background:var(--gray);border-color:var(--gray);color:#fff}
+.cm{width:calc(100% - 42px);margin:8px 0 0 42px;border:1px solid var(--line);border-radius:8px;
+padding:9px 11px;font-family:inherit;font-size:13.5px;background:#fffdf6;color:var(--ink);resize:vertical;min-height:38px}
+.cm:focus{outline:none;border-color:var(--blue);background:#fff}
+.stamp{font-size:11px;color:var(--ink3);margin:5px 0 0 42px}
+
+.cal{width:100%;border-collapse:collapse;margin:10px 0 0;font-size:13px;background:var(--card)}
+.cal td{border-bottom:1px solid var(--line);padding:9px;vertical-align:top}
+.cal td.d{white-space:nowrap;font-weight:700;width:1%}
+.cal tr.warn td{background:var(--amberbg)}.cal tr.free td{background:var(--greenbg)}
+
+.setup{position:fixed;inset:0;background:rgba(28,28,26,.55);z-index:90;display:flex;align-items:center;justify-content:center;padding:18px}
+.setup .card{background:#fff;border-radius:14px;padding:20px;max-width:460px;width:100%;max-height:88vh;overflow:auto}
+.setup h3{margin:0 0 6px;font-size:17px}
+.setup p{font-size:13px;color:var(--ink2);margin:0 0 12px}
+.setup label{display:block;font-size:12px;font-weight:700;color:var(--ink3);margin:10px 0 4px}
+.setup input{width:100%;border:1px solid var(--line);border-radius:8px;padding:11px;font-size:15px;font-family:inherit}
+.setup .row{display:flex;gap:9px;margin-top:14px}
+.setup button{flex:1;border:none;border-radius:9px;padding:13px;font-size:14px;font-weight:700;font-family:inherit}
+.pri{background:var(--ink);color:#fff}.sec{background:#eceadf;color:var(--ink2)}
+.err{color:var(--red);font-size:12.5px;margin-top:10px;min-height:16px}
+.hide{display:none!important}
+footer{margin-top:36px;padding-top:14px;border-top:1px solid var(--line);font-size:11.5px;color:var(--ink3)}
+</style>
+</head>
+<body>
+
+<div class="statusbar">
+  <span class="dot" id="dot"></span>
+  <span class="sync" id="sync">読み込み中…</span>
+  <button id="btnSync">同期</button>
+  <button id="btnCfg">設定</button>
+</div>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow" id="eyebrow"></p>
+    <h1 id="title">タスク</h1>
+    <p class="meta" id="meta">—</p>
+    <div class="bar"><i id="barfill"></i></div>
+    <p class="cnt" id="cnt">—</p>
+  </header>
+
+  <div id="banner" class="banner hide"></div>
+  <div id="notices"></div>
+
+  <div class="filters">
+    <button data-f="open" aria-pressed="true">未対応</button>
+    <button data-f="today" aria-pressed="false">今日</button>
+    <button data-f="doing" aria-pressed="false">対応中</button>
+    <button data-f="done" aria-pressed="false">完了</button>
+    <button data-f="all" aria-pressed="false">すべて</button>
+  </div>
+
+  <div id="list"></div>
+
+  <h2>この先10日の予定</h2>
+  <table class="cal"><tbody id="cal"></tbody></table>
+
+  <footer id="foot"></footer>
+</div>
+
+<div class="setup hide" id="setup">
+  <div class="card">
+    <h3>接続設定</h3>
+    <p>進捗を保存する GitHub の private リポジトリと、アクセストークンを設定します。入力内容はこの端末のブラウザにのみ保存され、外部には送信されません（GitHub API 以外への通信はありません）。</p>
+    <label>リポジトリ（owner/repo）</label>
+    <input id="inRepo" placeholder="harel-zei/iwasaki-task-data" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <label>ブランチ</label>
+    <input id="inBranch" placeholder="main" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <label>アクセストークン（fine-grained PAT）</label>
+    <input id="inTok" type="password" placeholder="github_pat_..." autocapitalize="off" autocorrect="off" spellcheck="false">
+    <div class="err" id="cfgErr"></div>
+    <div class="row">
+      <button class="pri" id="cfgSave">保存して読み込む</button>
+      <button class="sec" id="cfgClose">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+var LS="harel_stocktake_v1";
+var cfg={repo:"",branch:"main",token:""};
+var doc=null, prog={updated_at:null,items:{}}, progSha=null;
+var filter="open", dirty=false, timer=null, busy=false;
+
+var $=function(s){return document.querySelector(s)};
+var el=function(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
+
+function loadLocal(){
+  try{
+    var raw=localStorage.getItem(LS); if(!raw) return;
+    var o=JSON.parse(raw);
+    if(o.cfg) cfg=o.cfg;
+    if(o.prog) prog=o.prog;
+    if(o.doc) doc=o.doc;
+    if(o.dirty) dirty=true;
+  }catch(e){}
+}
+function saveLocal(){
+  try{localStorage.setItem(LS,JSON.stringify({cfg:cfg,prog:prog,doc:doc,dirty:dirty}))}catch(e){}
+}
+function status(kind,msg){
+  var d=$("#dot"); d.className="dot"+(kind?" "+kind:"");
+  $("#sync").textContent=msg;
+}
+function api(path,opts){
+  opts=opts||{};
+  var h=opts.headers||{};
+  h["Accept"]="application/vnd.github+json";
+  h["X-GitHub-Api-Version"]="2022-11-28";
+  if(cfg.token) h["Authorization"]="Bearer "+cfg.token;
+  opts.headers=h;
+  return fetch("https://api.github.com/repos/"+cfg.repo+"/contents/"+path+(opts.method?"":"?ref="+encodeURIComponent(cfg.branch)),opts)
+    .then(function(r){
+      if(r.status===404) return {__missing:true};
+      if(!r.ok) return r.text().then(function(t){throw new Error("GitHub "+r.status+" "+t.slice(0,120))});
+      return r.json();
+    });
+}
+function b64decode(s){
+  var bin=atob(s.replace(/\n/g,""));
+  var bytes=new Uint8Array(bin.length);
+  for(var i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+  return new TextDecoder("utf-8").decode(bytes);
+}
+function b64encode(str){
+  var bytes=new TextEncoder().encode(str), bin="";
+  for(var i=0;i<bytes.length;i++) bin+=String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+
+function pull(){
+  if(!cfg.repo||!cfg.token){ status("err","未設定です。右上の「設定」から接続してください"); return Promise.resolve(); }
+  status("pend","読み込み中…");
+  return Promise.all([api("data/tasks.json"),api("data/progress.json")])
+   .then(function(res){
+     if(res[0] && !res[0].__missing) doc=JSON.parse(b64decode(res[0].content));
+     if(res[1] && !res[1].__missing){
+       progSha=res[1].sha;
+       var remote=JSON.parse(b64decode(res[1].content));
+       if(!dirty) prog=remote;
+       else prog=merge(remote,prog);
+     }
+     saveLocal(); render();
+     status(dirty?"pend":"ok", dirty?"未同期の変更があります":"最新です");
+     if(dirty) schedule(200);
+   })
+   .catch(function(e){ status("err","読み込み失敗: "+e.message); render(); });
+}
+function merge(remote,local){
+  var out={updated_at:local.updated_at,items:{}};
+  var keys={};
+  Object.keys(remote.items||{}).forEach(function(k){keys[k]=1});
+  Object.keys(local.items||{}).forEach(function(k){keys[k]=1});
+  Object.keys(keys).forEach(function(k){
+    var r=(remote.items||{})[k], l=(local.items||{})[k];
+    if(!r) out.items[k]=l; else if(!l) out.items[k]=r;
+    else out.items[k]=((l.updated_at||"")>=(r.updated_at||""))?l:r;
+  });
+  return out;
+}
+function schedule(ms){
+  clearTimeout(timer);
+  timer=setTimeout(push, ms==null?1500:ms);
+}
+function push(){
+  if(!cfg.repo||!cfg.token){status("err","未設定です");return}
+  if(busy){schedule(1200);return}
+  busy=true; status("pend","保存中…");
+  prog.updated_at=new Date().toISOString();
+  var body={message:"progress "+prog.updated_at,content:b64encode(JSON.stringify(prog,null,1)),branch:cfg.branch};
+  if(progSha) body.sha=progSha;
+  fetch("https://api.github.com/repos/"+cfg.repo+"/contents/data/progress.json",{
+    method:"PUT",
+    headers:{"Accept":"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28",
+             "Authorization":"Bearer "+cfg.token,"Content-Type":"application/json"},
+    body:JSON.stringify(body)
+  }).then(function(r){
+    if(r.status===409||r.status===422){
+      busy=false;
+      return api("data/progress.json").then(function(x){
+        if(x&&!x.__missing){progSha=x.sha;prog=merge(JSON.parse(b64decode(x.content)),prog);}
+        schedule(400);
+      });
+    }
+    if(!r.ok) return r.text().then(function(t){throw new Error("GitHub "+r.status+" "+t.slice(0,120))});
+    return r.json().then(function(j){
+      progSha=j.content&&j.content.sha; dirty=false; busy=false;
+      saveLocal(); status("ok","保存しました");
+    });
+  }).catch(function(e){
+    busy=false; status("err","保存できませんでした（端末には保存済み）: "+e.message);
+  });
+}
+
+function setStatus(id,v,node){
+  var cur=(prog.items[id]||{}).status;
+  var it=prog.items[id]||{status:"",comment:""};
+  it.status=(cur===v)?"":v;
+  it.updated_at=new Date().toISOString();
+  prog.items[id]=it;
+  dirty=true; saveLocal();
+  // 一覧から消さず、その場だけ更新する（コメントを続けて書けるように）
+  if(node){
+    node.setAttribute("data-status", it.status||"");
+    node.querySelectorAll(".chip").forEach(function(c){
+      c.setAttribute("aria-pressed", c.getAttribute("data-v")===it.status?"true":"false");
+    });
+    var st=node.querySelector(".stamp");
+    if(!st){ st=el("div","stamp"); node.appendChild(st); }
+    st.textContent="最終更新 "+new Date(it.updated_at).toLocaleString("ja-JP");
+  }
+  counters();
+  status("pend","未同期"); schedule();
+}
+function counters(){
+  if(!doc) return;
+  var done=doc.tasks.filter(function(t){return (prog.items[t.id]||{}).status==="done"}).length;
+  var skip=doc.tasks.filter(function(t){return (prog.items[t.id]||{}).status==="skip"}).length;
+  var pct=doc.tasks.length?Math.round((done+skip)/doc.tasks.length*100):0;
+  $("#barfill").style.width=pct+"%";
+  $("#cnt").textContent="完了 "+done+" ／ 不要 "+skip+" ／ 全 "+doc.tasks.length+"（"+pct+"%）";
+}
+function setComment(id,txt){
+  var it=prog.items[id]||{status:"",comment:""};
+  it.comment=txt; it.updated_at=new Date().toISOString();
+  prog.items[id]=it; dirty=true; saveLocal(); status("pend","未同期"); schedule(2500);
+}
+
+function render(){
+  if(!doc){ $("#list").innerHTML=""; return; }
+  $("#eyebrow").textContent=doc.subtitle||"";
+  if(doc.title) $("#title").textContent=doc.title;
+  if(doc.title) document.title=doc.title;
+  $("#meta").textContent=(doc.date||"")+" 版　タスク "+doc.tasks.length+"件";
+  if(doc.headline){ $("#banner").textContent=doc.headline; $("#banner").classList.remove("hide"); }
+  var nx=$("#notices"); nx.innerHTML="";
+  (doc.notices||[]).forEach(function(t){ nx.appendChild(el("div","notice",t)); });
+
+  counters();
+
+  var list=$("#list"); list.innerHTML="";
+  var shown=doc.tasks.filter(function(t){
+    var s=(prog.items[t.id]||{}).status||"";
+    if(filter==="all") return true;
+    if(filter==="open") return s===""||s==="doing";
+    if(filter==="today") return t.group==="today"&&s!=="done"&&s!=="skip";
+    if(filter==="doing") return s==="doing";
+    if(filter==="done") return s==="done"||s==="skip";
+    return true;
+  });
+  if(!shown.length){ list.appendChild(el("p","cnt","該当する項目はありません。")); }
+  shown.forEach(function(t){
+    var p=prog.items[t.id]||{};
+    var d=el("div","item"); d.setAttribute("data-status",p.status||"");
+    d.setAttribute("data-g",t.group||"");
+    var top=el("div","top");
+    top.appendChild(el("div","id","#"+t.no));
+    var tx=el("div","txt");
+    var ti=el("span","t");
+    if(t.due_label){ var du=el("span","due",t.due_label); ti.appendChild(du); }
+    var cl=el("span","cl",t.client); ti.appendChild(cl);
+    ti.appendChild(document.createTextNode(t.title));
+    tx.appendChild(ti);
+    if(t.detail) tx.appendChild(el("span","s",t.detail));
+    top.appendChild(tx); d.appendChild(top);
+
+    var chips=el("div","chips");
+    [["done","済"],["doing","対応中"],["skip","不要"]].forEach(function(pair){
+      var b=el("button","chip",pair[1]);
+      b.setAttribute("data-v",pair[0]);
+      b.setAttribute("aria-pressed", p.status===pair[0]?"true":"false");
+      b.addEventListener("click",function(){ setStatus(t.id,pair[0],d); });
+      chips.appendChild(b);
+    });
+    d.appendChild(chips);
+
+    var ta=el("textarea","cm");
+    ta.placeholder="コメント（自動保存されます）";
+    ta.value=p.comment||"";
+    ta.addEventListener("input",function(){ setComment(t.id, ta.value); });
+    d.appendChild(ta);
+    if(p.updated_at) d.appendChild(el("div","stamp","最終更新 "+new Date(p.updated_at).toLocaleString("ja-JP")));
+    list.appendChild(d);
+  });
+
+  var cal=$("#cal"); cal.innerHTML="";
+  (doc.calendar||[]).forEach(function(c){
+    var tr=el("tr",c.tone||"");
+    var td1=el("td","d",c.date); var td2=el("td",null,c.text);
+    tr.appendChild(td1); tr.appendChild(td2); cal.appendChild(tr);
+  });
+  $("#foot").textContent="生成 "+(doc.generated_at||"")+"／進捗は GitHub の private リポジトリに保存されます。";
+}
+
+$("#btnSync").addEventListener("click",function(){ if(dirty) push(); else pull(); });
+$("#btnCfg").addEventListener("click",function(){
+  $("#inRepo").value=cfg.repo; $("#inBranch").value=cfg.branch||"main"; $("#inTok").value=cfg.token;
+  $("#setup").classList.remove("hide");
+});
+$("#cfgClose").addEventListener("click",function(){ $("#setup").classList.add("hide"); });
+$("#cfgSave").addEventListener("click",function(){
+  var r=$("#inRepo").value.trim(), b=$("#inBranch").value.trim()||"main", t=$("#inTok").value.trim();
+  if(!/^[\w.-]+\/[\w.-]+$/.test(r)){ $("#cfgErr").textContent="owner/repo の形式で入力してください"; return; }
+  if(!t){ $("#cfgErr").textContent="トークンを入力してください"; return; }
+  cfg={repo:r,branch:b,token:t}; $("#cfgErr").textContent=""; saveLocal();
+  $("#setup").classList.add("hide"); pull();
+});
+document.querySelectorAll(".filters button").forEach(function(b){
+  b.addEventListener("click",function(){
+    document.querySelectorAll(".filters button").forEach(function(x){x.setAttribute("aria-pressed","false")});
+    b.setAttribute("aria-pressed","true"); filter=b.getAttribute("data-f"); render();
+  });
+});
+window.addEventListener("online",function(){ if(dirty) schedule(300); });
+
+loadLocal();
+render();
+if(!cfg.repo||!cfg.token){ $("#setup").classList.remove("hide"); status("err","未設定"); }
+else pull();
+})();
+</script>
+</body>
+</html>
