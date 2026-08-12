@@ -143,11 +143,11 @@ footer{margin-top:36px;padding-top:14px;border-top:1px solid var(--line);font-si
   <button class="addbtn" id="btnAdd">＋ 思いついたタスクを追加</button>
   <div class="addform hide" id="addform">
     <label>やること<span class="req">必須</span></label>
-    <input id="inTitle" placeholder="例）北陸銀行に電話して訪問枠を打診">
+    <input id="inTitle" placeholder="例）銀行に電話して訪問の枠を打診する">
     <div class="two">
       <div>
         <label>顧問先・案件</label>
-        <input id="inClient" list="clients" placeholder="例）リスナーズ">
+        <input id="inClient" list="clients" placeholder="例）会社名・案件名">
         <datalist id="clients"></datalist>
       </div>
       <div>
@@ -511,7 +511,7 @@ $("#btnCfg").addEventListener("click",function(){
 $("#cfgClose").addEventListener("click",function(){ $("#setup").classList.add("hide"); });
 $("#cfgSave").addEventListener("click",function(){
   var r=$("#inRepo").value.trim(), b=$("#inBranch").value.trim()||"main", t=$("#inTok").value.trim();
-  if(!/^[\w.-]+\/[\w.-]+$/.test(r)){ $("#cfgErr").textContent="リポジトリ欄が空、または形式が違います。harel-zei/iwasaki-task-data のように入力してください（薄いグレーの文字は入力例です）"; return; }
+  if(!/^[\w.-]+\/[\w.-]+$/.test(r)){ $("#cfgErr").textContent="リポジトリ欄が空、または形式が違います。owner/repo-name のように、所有者名とリポジトリ名を「/」でつないで入力してください（薄いグレーの文字は入力例です）"; return; }
   if(!t){ $("#cfgErr").textContent="トークンを入力してください"; return; }
   cfg={repo:r,branch:b,token:t}; $("#cfgErr").textContent=""; saveLocal();
   $("#setup").classList.add("hide"); pull();
