@@ -85,7 +85,29 @@ padding:9px 11px;font-family:inherit;font-size:13.5px;background:#fffdf6;color:v
 .setup button{flex:1;border:none;border-radius:9px;padding:13px;font-size:14px;font-weight:700;font-family:inherit}
 .pri{background:var(--ink);color:#fff}.sec{background:#eceadf;color:var(--ink2)}
 .err{color:var(--red);font-size:12.5px;margin-top:10px;min-height:16px}
+.diag{background:#1c1c1a;color:#e8e6de;border-radius:9px;padding:12px;font-size:12px;line-height:1.7;
+white-space:pre-wrap;word-break:break-all;margin-top:12px;max-height:44vh;overflow:auto;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 .hide{display:none!important}
+.addbtn{width:100%;margin:12px 0 0;padding:13px;border:1px dashed #c3bfae;border-radius:10px;
+background:#fffdf6;color:var(--ink2);font-size:14px;font-weight:700;font-family:inherit}
+.addbtn:active{background:#f6f3e8}
+.addform{background:var(--card);border:2px solid var(--ink);border-radius:12px;padding:16px;margin:12px 0 0}
+.addform label{display:block;font-size:12px;font-weight:700;color:var(--ink3);margin:10px 0 4px}
+.addform label:first-child{margin-top:0}
+.addform .req{background:var(--red);color:#fff;border-radius:3px;font-size:10px;padding:1px 5px;margin-left:6px}
+.addform input,.addform textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:10px;
+font-size:15px;font-family:inherit;background:#fffdf6;color:var(--ink)}
+.addform textarea{min-height:70px;resize:vertical;font-size:14px}
+.addform input:focus,.addform textarea:focus{outline:none;border-color:var(--blue);background:#fff}
+.addform .two{display:flex;gap:10px}
+.addform .two>div{flex:1;min-width:0}
+.addform .chk{display:flex;gap:8px;align-items:center;font-size:13.5px;color:var(--ink2);margin-top:12px;font-weight:400}
+.addform .chk input{width:20px;height:20px;flex:0 0 auto}
+.addform .row{display:flex;gap:9px;margin-top:14px}
+.addform .row button{flex:1;border:none;border-radius:9px;padding:13px;font-size:14px;font-weight:700;font-family:inherit}
+.item[data-manual="1"]{border-left:3px solid var(--blue)}
+.item[data-manual="1"] .id{color:var(--blue);font-size:16px}
+.chip.cdel{min-width:48px;font-weight:400;font-size:12px;color:var(--red);border-color:#e6c9c6}
 footer{margin-top:36px;padding-top:14px;border-top:1px solid var(--line);font-size:11.5px;color:var(--ink3)}
 </style>
 </head>
@@ -118,6 +140,30 @@ footer{margin-top:36px;padding-top:14px;border-top:1px solid var(--line);font-si
     <button data-f="all" aria-pressed="false">すべて</button>
   </div>
 
+  <button class="addbtn" id="btnAdd">＋ 思いついたタスクを追加</button>
+  <div class="addform hide" id="addform">
+    <label>やること<span class="req">必須</span></label>
+    <input id="inTitle" placeholder="例）北陸銀行に電話して訪問枠を打診">
+    <div class="two">
+      <div>
+        <label>顧問先・案件</label>
+        <input id="inClient" list="clients" placeholder="例）リスナーズ">
+        <datalist id="clients"></datalist>
+      </div>
+      <div>
+        <label>期限の目安</label>
+        <input id="inDue" placeholder="例）今週中 / 8/20">
+      </div>
+    </div>
+    <label>メモ（背景・経緯など）</label>
+    <textarea id="inDetail" placeholder="どういう話だったか、何が決まっているか。自由に書いてください"></textarea>
+    <label class="chk"><input type="checkbox" id="inToday"> 今日やることに入れる</label>
+    <div class="row">
+      <button class="pri" id="addSave">追加する</button>
+      <button class="sec" id="addCancel">やめる</button>
+    </div>
+  </div>
+
   <div id="list"></div>
 
   <h2>この先10日の予定</h2>
@@ -131,16 +177,18 @@ footer{margin-top:36px;padding-top:14px;border-top:1px solid var(--line);font-si
     <h3>接続設定</h3>
     <p>進捗を保存する GitHub の private リポジトリと、アクセストークンを設定します。入力内容はこの端末のブラウザにのみ保存され、外部には送信されません（GitHub API 以外への通信はありません）。</p>
     <label>リポジトリ（owner/repo）</label>
-    <input id="inRepo" placeholder="harel-zei/iwasaki-task-data" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <input id="inRepo" placeholder="例）owner/repo-name" autocapitalize="off" autocorrect="off" spellcheck="false">
     <label>ブランチ</label>
-    <input id="inBranch" placeholder="main" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <input id="inBranch" placeholder="例）main" autocapitalize="off" autocorrect="off" spellcheck="false">
     <label>アクセストークン（fine-grained PAT）</label>
-    <input id="inTok" type="password" placeholder="github_pat_..." autocapitalize="off" autocorrect="off" spellcheck="false">
+    <input id="inTok" type="password" placeholder="github_pat_ で始まる文字列" autocapitalize="off" autocorrect="off" spellcheck="false">
     <div class="err" id="cfgErr"></div>
     <div class="row">
       <button class="pri" id="cfgSave">保存して読み込む</button>
+      <button class="sec" id="cfgTest">接続テスト</button>
       <button class="sec" id="cfgClose">閉じる</button>
     </div>
+    <pre id="diag" class="diag hide"></pre>
   </div>
 </div>
 
@@ -150,6 +198,7 @@ footer{margin-top:36px;padding-top:14px;border-top:1px solid var(--line);font-si
 var LS="harel_stocktake_v1";
 var cfg={repo:"",branch:"main",token:""};
 var doc=null, prog={updated_at:null,items:{}}, progSha=null;
+var inbox={updated_at:null,items:[]}, inboxSha=null, inboxDirty=false, inboxBusy=false;
 var filter="open", dirty=false, timer=null, busy=false;
 
 var $=function(s){return document.querySelector(s)};
@@ -162,11 +211,13 @@ function loadLocal(){
     if(o.cfg) cfg=o.cfg;
     if(o.prog) prog=o.prog;
     if(o.doc) doc=o.doc;
+    if(o.inbox) inbox=o.inbox;
     if(o.dirty) dirty=true;
+    if(o.inboxDirty) inboxDirty=true;
   }catch(e){}
 }
 function saveLocal(){
-  try{localStorage.setItem(LS,JSON.stringify({cfg:cfg,prog:prog,doc:doc,dirty:dirty}))}catch(e){}
+  try{localStorage.setItem(LS,JSON.stringify({cfg:cfg,prog:prog,doc:doc,inbox:inbox,dirty:dirty,inboxDirty:inboxDirty}))}catch(e){}
 }
 function status(kind,msg){
   var d=$("#dot"); d.className="dot"+(kind?" "+kind:"");
@@ -201,7 +252,7 @@ function b64encode(str){
 function pull(){
   if(!cfg.repo||!cfg.token){ status("err","未設定です。右上の「設定」から接続してください"); return Promise.resolve(); }
   status("pend","読み込み中…");
-  return Promise.all([api("data/tasks.json"),api("data/progress.json")])
+  return Promise.all([api("data/tasks.json"),api("data/progress.json"),api("data/inbox.json")])
    .then(function(res){
      if(res[0] && !res[0].__missing) doc=JSON.parse(b64decode(res[0].content));
      if(res[1] && !res[1].__missing){
@@ -210,11 +261,90 @@ function pull(){
        if(!dirty) prog=remote;
        else prog=merge(remote,prog);
      }
+     if(res[2] && !res[2].__missing){
+       inboxSha=res[2].sha;
+       var rin=JSON.parse(b64decode(res[2].content));
+       if(!inboxDirty) inbox=rin;
+       else inbox=mergeInbox(rin,inbox);
+     }
+     prune();
      saveLocal(); render();
-     status(dirty?"pend":"ok", dirty?"未同期の変更があります":"最新です");
+     status((dirty||inboxDirty)?"pend":"ok", (dirty||inboxDirty)?"未同期の変更があります":"最新です");
      if(dirty) schedule(200);
+     if(inboxDirty) pushInbox();
    })
    .catch(function(e){ status("err","読み込み失敗: "+e.message); render(); });
+}
+// 追加タスクは id をそのまま引き継ぐので、tasks.json に現れたら受け皿から外す
+function prune(){
+  if(!doc||!doc.tasks) return;
+  var known={}; doc.tasks.forEach(function(t){known[t.id]=1});
+  var before=(inbox.items||[]).length;
+  inbox.items=(inbox.items||[]).filter(function(it){return !known[it.id]});
+  if(inbox.items.length!==before){ inboxDirty=true; }
+}
+function mergeInbox(remote,local){
+  var seen={}, out=[];
+  (remote.items||[]).concat(local.items||[]).forEach(function(it){
+    if(it&&it.id&&!seen[it.id]){ seen[it.id]=1; out.push(it); }
+  });
+  out.sort(function(a,b){return (a.created_at||"")<(b.created_at||"")?-1:1});
+  return {updated_at:local.updated_at||remote.updated_at,items:out};
+}
+function inboxAsTasks(){
+  if(!doc||!doc.tasks) return (inbox.items||[]);
+  var known={}; doc.tasks.forEach(function(t){known[t.id]=1});
+  return (inbox.items||[]).filter(function(it){return !known[it.id]});
+}
+function allTasks(){
+  var base=(doc&&doc.tasks)?doc.tasks.slice():[];
+  var add=inboxAsTasks().map(function(it){
+    return {id:it.id,no:it.no||"新",client:it.client||"自分メモ",title:it.title,
+            detail:it.detail||"",group:it.group||"open",due_label:it.due_label||"",manual:true};
+  });
+  return add.concat(base);
+}
+function pushInbox(){
+  if(!cfg.repo||!cfg.token) return;
+  if(inboxBusy) { setTimeout(pushInbox,1200); return; }
+  inboxBusy=true; status("pend","保存中…");
+  inbox.updated_at=new Date().toISOString();
+  var body={message:"inbox "+inbox.updated_at,content:b64encode(JSON.stringify(inbox,null,1)),branch:cfg.branch};
+  if(inboxSha) body.sha=inboxSha;
+  fetch("https://api.github.com/repos/"+cfg.repo+"/contents/data/inbox.json",{
+    method:"PUT",
+    headers:{"Accept":"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28",
+             "Authorization":"Bearer "+cfg.token,"Content-Type":"application/json"},
+    body:JSON.stringify(body)
+  }).then(function(r){
+    if(r.status===409||r.status===422){
+      inboxBusy=false;
+      return api("data/inbox.json").then(function(x){
+        if(x&&!x.__missing){ inboxSha=x.sha; inbox=mergeInbox(JSON.parse(b64decode(x.content)),inbox); }
+        setTimeout(pushInbox,400);
+      });
+    }
+    if(!r.ok) return r.text().then(function(t){throw new Error("GitHub "+r.status+" "+t.slice(0,120))});
+    return r.json().then(function(j){
+      inboxSha=j.content&&j.content.sha; inboxDirty=false; inboxBusy=false;
+      saveLocal(); status(dirty?"pend":"ok", dirty?"未同期":"保存しました");
+    });
+  }).catch(function(e){
+    inboxBusy=false; status("err","保存できませんでした（端末には保存済み）: "+e.message);
+  });
+}
+function addTask(t){
+  var id="i-"+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36);
+  inbox.items=inbox.items||[];
+  inbox.items.push({id:id,title:t.title,client:t.client||"",detail:t.detail||"",
+                    due_label:t.due_label||"",group:t.group||"open",
+                    created_at:new Date().toISOString(),source:"manual"});
+  inboxDirty=true; saveLocal(); render(); status("pend","未同期"); pushInbox();
+}
+function removeInboxItem(id){
+  inbox.items=(inbox.items||[]).filter(function(it){return it.id!==id});
+  if(prog.items[id]){ delete prog.items[id]; dirty=true; schedule(800); }
+  inboxDirty=true; saveLocal(); render(); pushInbox();
 }
 function merge(remote,local){
   var out={updated_at:local.updated_at,items:{}};
@@ -284,11 +414,14 @@ function setStatus(id,v,node){
 }
 function counters(){
   if(!doc) return;
-  var done=doc.tasks.filter(function(t){return (prog.items[t.id]||{}).status==="done"}).length;
-  var skip=doc.tasks.filter(function(t){return (prog.items[t.id]||{}).status==="skip"}).length;
-  var pct=doc.tasks.length?Math.round((done+skip)/doc.tasks.length*100):0;
+  var list=allTasks();
+  var done=list.filter(function(t){return (prog.items[t.id]||{}).status==="done"}).length;
+  var skip=list.filter(function(t){return (prog.items[t.id]||{}).status==="skip"}).length;
+  var pct=list.length?Math.round((done+skip)/list.length*100):0;
   $("#barfill").style.width=pct+"%";
-  $("#cnt").textContent="完了 "+done+" ／ 不要 "+skip+" ／ 全 "+doc.tasks.length+"（"+pct+"%）";
+  var addN=inboxAsTasks().length;
+  $("#cnt").textContent="完了 "+done+" ／ 不要 "+skip+" ／ 全 "+list.length+"（"+pct+"%）"
+    +(addN?"　※自分で追加した "+addN+"件は明朝に整理されます":"");
 }
 function setComment(id,txt){
   var it=prog.items[id]||{status:"",comment:""};
@@ -301,7 +434,7 @@ function render(){
   $("#eyebrow").textContent=doc.subtitle||"";
   if(doc.title) $("#title").textContent=doc.title;
   if(doc.title) document.title=doc.title;
-  $("#meta").textContent=(doc.date||"")+" 版　タスク "+doc.tasks.length+"件";
+  $("#meta").textContent=(doc.date||"")+" 版　タスク "+allTasks().length+"件";
   if(doc.headline){ $("#banner").textContent=doc.headline; $("#banner").classList.remove("hide"); }
   var nx=$("#notices"); nx.innerHTML="";
   (doc.notices||[]).forEach(function(t){ nx.appendChild(el("div","notice",t)); });
@@ -309,7 +442,7 @@ function render(){
   counters();
 
   var list=$("#list"); list.innerHTML="";
-  var shown=doc.tasks.filter(function(t){
+  var shown=allTasks().filter(function(t){
     var s=(prog.items[t.id]||{}).status||"";
     if(filter==="all") return true;
     if(filter==="open") return s===""||s==="doing";
@@ -323,8 +456,9 @@ function render(){
     var p=prog.items[t.id]||{};
     var d=el("div","item"); d.setAttribute("data-status",p.status||"");
     d.setAttribute("data-g",t.group||"");
+    if(t.manual) d.setAttribute("data-manual","1");
     var top=el("div","top");
-    top.appendChild(el("div","id","#"+t.no));
+    top.appendChild(el("div","id",t.manual?"＋":("#"+t.no)));
     var tx=el("div","txt");
     var ti=el("span","t");
     if(t.due_label){ var du=el("span","due",t.due_label); ti.appendChild(du); }
@@ -342,6 +476,13 @@ function render(){
       b.addEventListener("click",function(){ setStatus(t.id,pair[0],d); });
       chips.appendChild(b);
     });
+    if(t.manual){
+      var del=el("button","chip cdel","削除");
+      del.addEventListener("click",function(){
+        if(confirm("この追加タスクを削除しますか？\n（明朝の整理前なので完全に消えます）")) removeInboxItem(t.id);
+      });
+      chips.appendChild(del);
+    }
     d.appendChild(chips);
 
     var ta=el("textarea","cm");
@@ -370,10 +511,70 @@ $("#btnCfg").addEventListener("click",function(){
 $("#cfgClose").addEventListener("click",function(){ $("#setup").classList.add("hide"); });
 $("#cfgSave").addEventListener("click",function(){
   var r=$("#inRepo").value.trim(), b=$("#inBranch").value.trim()||"main", t=$("#inTok").value.trim();
-  if(!/^[\w.-]+\/[\w.-]+$/.test(r)){ $("#cfgErr").textContent="owner/repo の形式で入力してください"; return; }
+  if(!/^[\w.-]+\/[\w.-]+$/.test(r)){ $("#cfgErr").textContent="リポジトリ欄が空、または形式が違います。harel-zei/iwasaki-task-data のように入力してください（薄いグレーの文字は入力例です）"; return; }
   if(!t){ $("#cfgErr").textContent="トークンを入力してください"; return; }
   cfg={repo:r,branch:b,token:t}; $("#cfgErr").textContent=""; saveLocal();
   $("#setup").classList.add("hide"); pull();
+});
+$("#cfgTest").addEventListener("click",function(){
+  var r=$("#inRepo").value.trim(), br=$("#inBranch").value.trim()||"main", t=$("#inTok").value.trim();
+  var out=$("#diag"); out.classList.remove("hide"); out.textContent="診断しています…\n";
+  var log=function(m){ out.textContent+=m+"\n"; };
+  var H={"Accept":"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28","Authorization":"Bearer "+t};
+  if(!/^[\w.-]+\/[\w.-]+$/.test(r)){ log("✗ リポジトリ名が owner/repo の形式ではありません: 「"+r+"」"); return; }
+  if(!t){ log("✗ トークンが空です"); return; }
+  log("リポジトリ: "+r+"  ブランチ: "+br);
+  fetch("https://api.github.com/repos/"+r,{headers:H}).then(function(res){
+    if(res.status===404){ log("✗ [1] リポジトリが見えません（404）"); log("   → リポジトリ名の綴り、またはトークンの Repository access に"); log("     このリポジトリが入っていない可能性があります"); throw "stop"; }
+    if(res.status===401){ log("✗ [1] トークンが無効です（401）。期限切れか文字列の欠けを確認してください"); throw "stop"; }
+    if(!res.ok){ log("✗ [1] リポジトリ確認に失敗（"+res.status+"）"); throw "stop"; }
+    log("✓ [1] リポジトリが見えています");
+    return res.json();
+  }).then(function(j){
+    log("   既定ブランチ: "+(j.default_branch||"?")+(j.default_branch&&j.default_branch!==br?"  ← 入力した「"+br+"」と違います":""));
+    log("   公開設定: "+(j.private?"private（正しい）":"public ← 中身が公開されています。private に変更してください"));
+    return fetch("https://api.github.com/repos/"+r+"/contents/data/tasks.json?ref="+encodeURIComponent(br),{headers:H});
+  }).then(function(res){
+    if(res.status===404){ log("✗ [2] data/tasks.json が見つかりません（404）"); log("   → ファイルを上げたか、ブランチ名が合っているか確認してください"); }
+    else if(res.ok) log("✓ [2] data/tasks.json を読めました");
+    else log("✗ [2] 読み込み失敗（"+res.status+"）");
+    return fetch("https://api.github.com/repos/"+r+"/contents/.probe-"+Math.floor(Math.random()*1e6)+".txt",{
+      method:"PUT",headers:Object.assign({"Content-Type":"application/json"},H),
+      body:JSON.stringify({message:"probe",content:btoa("probe"),branch:br})});
+  }).then(function(res){
+    if(res.ok){ log("✓ [3] 書き込みできました（権限OK）"); return res.json().then(function(j){
+      return fetch("https://api.github.com/repos/"+r+"/contents/"+j.content.path,{method:"DELETE",
+        headers:Object.assign({"Content-Type":"application/json"},H),
+        body:JSON.stringify({message:"probe cleanup",sha:j.content.sha,branch:br})}).then(function(){ log("   （テスト用ファイルは削除しました）"); });
+    });}
+    log("✗ [3] 書き込みできません（"+res.status+"）");
+    log("   → トークンの Permissions で Contents が");
+    log("     Read and write になっているか確認してください。");
+    log("     設定後に緑の Update を押さないと保存されません。");
+    return res.text().then(function(t){ log("   詳細: "+t.slice(0,150)); });
+  }).catch(function(e){ if(e!=="stop") log("✗ 通信エラー: "+e); });
+});
+function openAdd(){
+  var dl=$("#clients"); dl.innerHTML="";
+  var seen={};
+  allTasks().forEach(function(t){
+    if(t.client && !seen[t.client]){ seen[t.client]=1; var o=document.createElement("option"); o.value=t.client; dl.appendChild(o); }
+  });
+  $("#inTitle").value=""; $("#inClient").value=""; $("#inDue").value="";
+  $("#inDetail").value=""; $("#inToday").checked=false;
+  $("#addform").classList.remove("hide"); $("#btnAdd").classList.add("hide");
+  $("#inTitle").focus();
+}
+function closeAdd(){ $("#addform").classList.add("hide"); $("#btnAdd").classList.remove("hide"); }
+$("#btnAdd").addEventListener("click",openAdd);
+$("#addCancel").addEventListener("click",closeAdd);
+$("#addSave").addEventListener("click",function(){
+  var title=$("#inTitle").value.trim();
+  if(!title){ $("#inTitle").focus(); $("#inTitle").style.borderColor="#b8352b"; return; }
+  $("#inTitle").style.borderColor="";
+  addTask({title:title, client:$("#inClient").value.trim(), detail:$("#inDetail").value.trim(),
+           due_label:$("#inDue").value.trim(), group:$("#inToday").checked?"today":"open"});
+  closeAdd();
 });
 document.querySelectorAll(".filters button").forEach(function(b){
   b.addEventListener("click",function(){
