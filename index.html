@@ -107,6 +107,19 @@ font-size:15px;font-family:inherit;background:#fffdf6;color:var(--ink)}
 .addform input:focus,.addform textarea:focus{outline:none;border-color:var(--blue);background:#fff}
 .addform .two{display:flex;gap:10px}
 .addform .two>div{flex:1;min-width:0}
+/* 期限は打たずに選べるようにする。カレンダーは端末標準のものを開く。 */
+.duepick{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
+.duepick button,.duepick .datechip{flex:0 0 auto;border:1px solid var(--line);background:#fbfaf7;
+border-radius:18px;padding:8px 13px;font-size:13px;font-family:inherit;font-weight:700;color:var(--ink2);
+line-height:1.2;cursor:pointer}
+.duepick button:active,.duepick .datechip:active{background:#f0ede2}
+.duepick .clear{font-weight:400;color:var(--ink3)}
+.duepick .datechip{position:relative;background:var(--bluebg);border-color:#c5d5e8;color:var(--blue);
+display:inline-flex;align-items:center;margin:0}
+/* 端末標準の日付入力を、見た目のボタン全体に重ねる（どこを押してもカレンダーが開く）。
+   枠線の上も押せるよう、1px はみ出させている。透明なので見た目には出ない。 */
+.duepick .datechip input{position:absolute;inset:-1px;width:auto;height:auto;opacity:0;
+border:0;padding:0;margin:0;background:transparent;-webkit-appearance:none;appearance:none}
 .addform .chk{display:flex;gap:8px;align-items:center;font-size:13.5px;color:var(--ink2);margin-top:12px;font-weight:400}
 .addform .chk input{width:20px;height:20px;flex:0 0 auto}
 .addform .row{display:flex;gap:9px;margin-top:14px}
@@ -160,8 +173,18 @@ footer{margin-top:36px;padding-top:14px;border-top:1px solid var(--line);font-si
       </div>
       <div>
         <label>期限の目安</label>
-        <input id="inDue" placeholder="例）今週中 / 8/20">
+        <input id="inDue" placeholder="例）8/20">
       </div>
+    </div>
+    <div class="duepick">
+      <button type="button" data-due="本日">今日</button>
+      <button type="button" data-due="明日">明日</button>
+      <button type="button" data-due="今週中">今週中</button>
+      <button type="button" data-due="月末">月末</button>
+      <label class="datechip">カレンダーから選ぶ
+        <input type="date" id="inDueDate" aria-label="期限の日付をカレンダーから選ぶ">
+      </label>
+      <button type="button" data-due="" class="clear">なし</button>
     </div>
     <label>メモ（背景・経緯など）</label>
     <textarea id="inDetail" placeholder="どういう話だったか、何が決まっているか。自由に書いてください"></textarea>
@@ -582,11 +605,28 @@ function openAdd(){
     if(t.client && !seen[t.client]){ seen[t.client]=1; var o=document.createElement("option"); o.value=t.client; dl.appendChild(o); }
   });
   $("#inTitle").value=""; $("#inClient").value=""; $("#inDue").value="";
+  $("#inDueDate").value="";
   $("#inDetail").value=""; $("#inToday").checked=false;
   $("#addform").classList.remove("hide"); $("#btnAdd").classList.add("hide");
   $("#inTitle").focus();
 }
 function closeAdd(){ $("#addform").classList.add("hide"); $("#btnAdd").classList.remove("hide"); }
+
+// 期限は打たずに選べるようにする。押した内容がそのまま「期限の目安」欄に入る。
+document.querySelectorAll(".duepick button").forEach(function(b){
+  b.addEventListener("click",function(){
+    $("#inDue").value=b.getAttribute("data-due")||"";
+    $("#inDueDate").value="";
+  });
+});
+// 端末標準のカレンダーで選ばれた日付を「8/20」の形にして入れる
+$("#inDueDate").addEventListener("change",function(){
+  var v=this.value;                       // 2026-08-20 の形
+  if(!v){ return; }
+  var p=v.split("-");
+  if(p.length!==3){ return; }
+  $("#inDue").value=parseInt(p[1],10)+"/"+parseInt(p[2],10);
+});
 $("#btnAdd").addEventListener("click",openAdd);
 $("#addCancel").addEventListener("click",closeAdd);
 $("#addSave").addEventListener("click",function(){
