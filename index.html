@@ -6,10 +6,54 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#faf9f5">
 <title>タスク</title>
+<script>
+/* 見た目の設定は、画面が描かれる前に当てる（一瞬明るく光るのを防ぐため）。
+   ここだけは <head> に置く必要がある。 */
+(function(){try{var v=localStorage.getItem("harel_stocktake_theme");
+if(v==="dark"||v==="light")document.documentElement.setAttribute("data-theme",v);}catch(e){}})();
+</script>
 <style>
-:root{--ink:#1c1c1a;--ink2:#4a4a46;--ink3:#75746e;--line:#e2e0d8;--bg:#faf9f5;--card:#fff;
+/* 配色はすべてここで決める。個々の指定に色を直書きしないこと（片方のモードで破綻するため）。
+   既定は端末の設定に従う。設定画面で「明るい／暗い」に固定もできる。 */
+:root{color-scheme:light;
+--ink:#1c1c1a;--ink2:#4a4a46;--ink3:#6e6d67;--line:#e2e0d8;--bg:#faf9f5;--card:#fff;
 --red:#b8352b;--redbg:#fbeceb;--amber:#a35b0a;--amberbg:#fdf2e3;--green:#2f6b4a;--greenbg:#eaf3ed;
---blue:#2d5b8e;--bluebg:#eaf0f7;--gray:#8a8880}
+--blue:#2d5b8e;--bluebg:#eaf0f7;--gray:#8a8880;
+--bar:rgba(250,249,245,.97);   /* 上のバー（半透明） */
+--btn:#fff;                    /* 小さなボタンの地 */
+--soft:#fbfaf7;                /* チップ・絞り込みの地 */
+--soft2:#f0ede2;               /* 押したとき */
+--field:#fffdf6;               /* 入力欄 */
+--field2:#fff;                 /* 入力欄（選択中） */
+--inv:#fff;                    /* 色のついた地の上に載る文字 */
+--due:#eceadf;                 /* 期限バッジ */
+--dash:#c3bfae;                /* 破線 */
+--dash2:#d9c9a4;               /* 破線（お知らせ） */
+--strike:#b7b4a8;              /* 取り消し線 */
+--doing:#f7fafd;               /* 対応中の行 */
+--amberline:#e8cfa4;--redline:#dfb3af;--blueline:#c5d5e8;--delline:#e6c9c6;
+--overlay:rgba(28,28,26,.55)}
+
+/* 端末が暗い設定のとき（「明るい」に固定していれば適用しない） */
+@media (prefers-color-scheme:dark){
+:root:not([data-theme="light"]){color-scheme:dark;
+--ink:#eae8e1;--ink2:#bfbdb4;--ink3:#8f8d84;--line:#35332e;--bg:#171614;--card:#211f1c;
+--red:#f0918a;--redbg:#3a2220;--amber:#e0a860;--amberbg:#3a2d1a;--green:#7cc39c;--greenbg:#1f3329;
+--blue:#8fb8e6;--bluebg:#1f2c3c;--gray:#83817a;
+--bar:rgba(23,22,20,.97);--btn:#2a2825;--soft:#26241f;--soft2:#312e28;--field:#22201c;--field2:#2a2723;
+--inv:#171614;--due:#3a372f;--dash:#4d4940;--dash2:#5a4c2e;--strike:#6b675e;--doing:#1d242c;
+--amberline:#5a4520;--redline:#5c3330;--blueline:#33465e;--delline:#5c3a37;
+--overlay:rgba(0,0,0,.62)}}
+
+/* 設定画面で「暗い」に固定したとき（端末の設定によらず適用） */
+:root[data-theme="dark"]{color-scheme:dark;
+--ink:#eae8e1;--ink2:#bfbdb4;--ink3:#8f8d84;--line:#35332e;--bg:#171614;--card:#211f1c;
+--red:#f0918a;--redbg:#3a2220;--amber:#e0a860;--amberbg:#3a2d1a;--green:#7cc39c;--greenbg:#1f3329;
+--blue:#8fb8e6;--bluebg:#1f2c3c;--gray:#83817a;
+--bar:rgba(23,22,20,.97);--btn:#2a2825;--soft:#26241f;--soft2:#312e28;--field:#22201c;--field2:#2a2723;
+--inv:#171614;--due:#3a372f;--dash:#4d4940;--dash2:#5a4c2e;--strike:#6b675e;--doing:#1d242c;
+--amberline:#5a4520;--redline:#5c3330;--blueline:#33465e;--delline:#5c3a37;
+--overlay:rgba(0,0,0,.62)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;padding:0 0 calc(40px + env(safe-area-inset-bottom));background:var(--bg);color:var(--ink);
 font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Yu Gothic",Meiryo,sans-serif;
@@ -24,7 +68,7 @@ h1{font-size:23px;margin:0 0 6px;font-weight:700}
 /* 上のバーは .wrap の外にあるので、左右の余白は自前で持つ。
    ホーム画面から起動したときに時計・ノッチの下へ潜らないよう safe-area も足す。 */
 .statusbar{position:sticky;top:0;z-index:40;
-background:rgba(250,249,245,.97);border-bottom:1px solid var(--line);backdrop-filter:blur(6px);
+background:var(--bar);border-bottom:1px solid var(--line);backdrop-filter:blur(6px);
 padding:calc(11px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right))
         11px calc(16px + env(safe-area-inset-left))}
 .statusbar .inner{max-width:820px;margin:0 auto;
@@ -32,7 +76,7 @@ display:flex;gap:12px;align-items:center;font-size:12.5px}
 .dot{width:9px;height:9px;border-radius:50%;background:var(--gray);flex:0 0 auto}
 .dot.ok{background:var(--green)}.dot.pend{background:var(--amber)}.dot.err{background:var(--red)}
 .sync{flex:1;color:var(--ink2);min-width:0}
-.statusbar button{flex:0 0 auto;border:1px solid var(--line);background:#fff;border-radius:16px;
+.statusbar button{flex:0 0 auto;border:1px solid var(--line);background:var(--btn);border-radius:16px;
 padding:7px 14px;font-size:12px;font-family:inherit;color:var(--ink2)}
 .bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:14px 0 6px}
 .bar i{display:block;height:100%;background:var(--green);width:0;transition:width .3s}
@@ -40,22 +84,22 @@ padding:7px 14px;font-size:12px;font-family:inherit;color:var(--ink2)}
 
 .banner{background:var(--greenbg);border-left:4px solid var(--green);border-radius:0 8px 8px 0;
 padding:13px 16px;margin:14px 0 0;font-size:13.5px}
-.notice{background:var(--amberbg);border:1px solid #e8cfa4;border-radius:9px;padding:11px 14px;
+.notice{background:var(--amberbg);border:1px solid var(--amberline);border-radius:9px;padding:11px 14px;
 font-size:12.5px;color:var(--ink2);margin:12px 0 0}
-.notice.stale{background:var(--redbg);border-color:#dfb3af;color:var(--red);font-weight:700}
-.noticemore{display:block;width:100%;margin:8px 0 0;padding:9px;border:1px dashed #d9c9a4;
+.notice.stale{background:var(--redbg);border-color:var(--redline);color:var(--red);font-weight:700}
+.noticemore{display:block;width:100%;margin:8px 0 0;padding:9px;border:1px dashed var(--dash2);
 border-radius:9px;background:transparent;color:var(--amber);font-size:12.5px;font-family:inherit;font-weight:700}
 
 .filters{display:flex;gap:7px;margin:18px 0 4px;overflow-x:auto;padding-bottom:4px}
-.filters button{flex:0 0 auto;border:1px solid var(--line);background:#fbfaf7;border-radius:18px;
+.filters button{flex:0 0 auto;border:1px solid var(--line);background:var(--soft);border-radius:18px;
 padding:7px 14px;font-size:13px;font-family:inherit;font-weight:700;color:var(--ink3)}
-.filters button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.filters button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--inv)}
 
 h2{font-size:16.5px;margin:30px 0 2px;padding-bottom:6px;border-bottom:1px solid var(--line);font-weight:700}
 .item{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:9px 0}
 .item[data-status="done"]{opacity:.5;border-left:3px solid var(--green)}
-.item[data-status="done"] .t{text-decoration:line-through;text-decoration-color:#b7b4a8}
-.item[data-status="doing"]{border-left:3px solid var(--blue);background:#f7fafd}
+.item[data-status="done"] .t{text-decoration:line-through;text-decoration-color:var(--strike)}
+.item[data-status="doing"]{border-left:3px solid var(--blue);background:var(--doing)}
 .item[data-status="skip"]{opacity:.5;border-left:3px solid var(--gray)}
 .item[data-g="today"]{border-left:3px solid var(--red)}
 .item[data-g="today"][data-status="done"]{border-left-color:var(--green)}
@@ -66,17 +110,17 @@ h2{font-size:16.5px;margin:30px 0 2px;padding-bottom:6px;border-bottom:1px solid
 .cl{font-size:11.5px;color:var(--blue);font-weight:700;display:inline-block;margin-right:6px}
 .s{font-size:12.5px;color:var(--ink3);display:block;margin-top:2px}
 .due{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:4px;margin-right:6px;
-background:#eceadf;color:var(--ink3)}
-.item[data-g="today"] .due{background:var(--amber);color:#fff}
+background:var(--due);color:var(--ink3)}
+.item[data-g="today"] .due{background:var(--amber);color:var(--inv)}
 .chips{display:flex;gap:6px;margin:10px 0 0 42px;flex-wrap:wrap}
 .chip{min-width:56px;text-align:center;padding:8px 12px;border:1px solid var(--line);border-radius:20px;
-background:#fbfaf7;font-size:13px;font-weight:700;color:var(--ink3);font-family:inherit}
-.chip[aria-pressed="true"][data-v="done"]{background:var(--green);border-color:var(--green);color:#fff}
-.chip[aria-pressed="true"][data-v="doing"]{background:var(--blue);border-color:var(--blue);color:#fff}
-.chip[aria-pressed="true"][data-v="skip"]{background:var(--gray);border-color:var(--gray);color:#fff}
+background:var(--soft);font-size:13px;font-weight:700;color:var(--ink3);font-family:inherit}
+.chip[aria-pressed="true"][data-v="done"]{background:var(--green);border-color:var(--green);color:var(--inv)}
+.chip[aria-pressed="true"][data-v="doing"]{background:var(--blue);border-color:var(--blue);color:var(--inv)}
+.chip[aria-pressed="true"][data-v="skip"]{background:var(--gray);border-color:var(--gray);color:var(--inv)}
 .cm{width:calc(100% - 42px);margin:8px 0 0 42px;border:1px solid var(--line);border-radius:8px;
-padding:9px 11px;font-family:inherit;font-size:13.5px;background:#fffdf6;color:var(--ink);resize:vertical;min-height:38px}
-.cm:focus{outline:none;border-color:var(--blue);background:#fff}
+padding:9px 11px;font-family:inherit;font-size:13.5px;background:var(--field);color:var(--ink);resize:vertical;min-height:38px}
+.cm:focus{outline:none;border-color:var(--blue);background:var(--field2)}
 .stamp{font-size:11px;color:var(--ink3);margin:5px 0 0 42px}
 
 .cal{width:100%;border-collapse:collapse;margin:10px 0 0;font-size:13px;background:var(--card)}
@@ -84,40 +128,48 @@ padding:9px 11px;font-family:inherit;font-size:13.5px;background:#fffdf6;color:v
 .cal td.d{white-space:nowrap;font-weight:700;width:1%}
 .cal tr.warn td{background:var(--amberbg)}.cal tr.free td{background:var(--greenbg)}
 
-.setup{position:fixed;inset:0;background:rgba(28,28,26,.55);z-index:90;display:flex;align-items:center;justify-content:center;padding:18px}
-.setup .card{background:#fff;border-radius:14px;padding:20px;max-width:460px;width:100%;max-height:88vh;overflow:auto}
+.setup{position:fixed;inset:0;background:var(--overlay);z-index:90;display:flex;align-items:center;justify-content:center;padding:18px}
+.setup .card{background:var(--card);border-radius:14px;padding:20px;max-width:460px;width:100%;max-height:88vh;overflow:auto}
 .setup h3{margin:0 0 6px;font-size:17px}
 .setup p{font-size:13px;color:var(--ink2);margin:0 0 12px}
 .setup label{display:block;font-size:12px;font-weight:700;color:var(--ink3);margin:10px 0 4px}
-.setup input{width:100%;border:1px solid var(--line);border-radius:8px;padding:11px;font-size:15px;font-family:inherit}
+.setup input{width:100%;border:1px solid var(--line);border-radius:8px;padding:11px;font-size:15px;font-family:inherit;
+background:var(--field);color:var(--ink)}
 .setup .row{display:flex;gap:9px;margin-top:14px}
 .setup button{flex:1;border:none;border-radius:9px;padding:13px;font-size:14px;font-weight:700;font-family:inherit}
-.pri{background:var(--ink);color:#fff}.sec{background:#eceadf;color:var(--ink2)}
+.pri{background:var(--ink);color:var(--inv)}.sec{background:var(--soft2);color:var(--ink2)}
 .err{color:var(--red);font-size:12.5px;margin-top:10px;min-height:16px}
+.themepick{display:flex;gap:7px}
+.themepick button{flex:1;border:1px solid var(--line);background:var(--soft);border-radius:18px;
+padding:9px 6px;font-size:12.5px;font-family:inherit;font-weight:700;color:var(--ink3)}
+.themepick button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--inv)}
+.setup p.sep{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+.setup p.hint{font-size:11.5px;color:var(--ink3);margin:6px 0 0}
 .diag{background:#1c1c1a;color:#e8e6de;border-radius:9px;padding:12px;font-size:12px;line-height:1.7;
 white-space:pre-wrap;word-break:break-all;margin-top:12px;max-height:44vh;overflow:auto;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 .hide{display:none!important}
-.addbtn{width:100%;margin:12px 0 0;padding:13px;border:1px dashed #c3bfae;border-radius:10px;
-background:#fffdf6;color:var(--ink2);font-size:14px;font-weight:700;font-family:inherit}
-.addbtn:active{background:#f6f3e8}
+.addbtn{width:100%;margin:12px 0 0;padding:13px;border:1px dashed var(--dash);border-radius:10px;
+background:var(--field);color:var(--ink2);font-size:14px;font-weight:700;font-family:inherit}
+.addbtn:active{background:var(--soft2)}
 .addform{background:var(--card);border:2px solid var(--ink);border-radius:12px;padding:16px;margin:12px 0 0}
 .addform label{display:block;font-size:12px;font-weight:700;color:var(--ink3);margin:10px 0 4px}
 .addform label:first-child{margin-top:0}
-.addform .req{background:var(--red);color:#fff;border-radius:3px;font-size:10px;padding:1px 5px;margin-left:6px}
+.addform .req{background:var(--red);color:var(--inv);border-radius:3px;font-size:10px;padding:1px 5px;margin-left:6px}
 .addform input,.addform textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:10px;
-font-size:15px;font-family:inherit;background:#fffdf6;color:var(--ink)}
+font-size:15px;font-family:inherit;background:var(--field);color:var(--ink)}
 .addform textarea{min-height:70px;resize:vertical;font-size:14px}
-.addform input:focus,.addform textarea:focus{outline:none;border-color:var(--blue);background:#fff}
+.addform input:focus,.addform textarea:focus{outline:none;border-color:var(--blue);background:var(--field2)}
+.addform input.bad{border-color:var(--red)}
 .addform .two{display:flex;gap:10px}
 .addform .two>div{flex:1;min-width:0}
 /* 期限は打たずに選べるようにする。カレンダーは端末標準のものを開く。 */
 .duepick{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
-.duepick button,.duepick .datechip{flex:0 0 auto;border:1px solid var(--line);background:#fbfaf7;
+.duepick button,.duepick .datechip{flex:0 0 auto;border:1px solid var(--line);background:var(--soft);
 border-radius:18px;padding:8px 13px;font-size:13px;font-family:inherit;font-weight:700;color:var(--ink2);
 line-height:1.2;cursor:pointer}
-.duepick button:active,.duepick .datechip:active{background:#f0ede2}
+.duepick button:active,.duepick .datechip:active{background:var(--soft2)}
 .duepick .clear{font-weight:400;color:var(--ink3)}
-.duepick .datechip{position:relative;background:var(--bluebg);border-color:#c5d5e8;color:var(--blue);
+.duepick .datechip{position:relative;background:var(--bluebg);border-color:var(--blueline);color:var(--blue);
 display:inline-flex;align-items:center;margin:0}
 /* 端末標準の日付入力を、見た目のボタン全体に重ねる（どこを押してもカレンダーが開く）。
    枠線の上も押せるよう、1px はみ出させている。透明なので見た目には出ない。 */
@@ -129,7 +181,7 @@ border:0;padding:0;margin:0;background:transparent;-webkit-appearance:none;appea
 .addform .row button{flex:1;border:none;border-radius:9px;padding:13px;font-size:14px;font-weight:700;font-family:inherit}
 .item[data-manual="1"]{border-left:3px solid var(--blue)}
 .item[data-manual="1"] .id{color:var(--blue);font-size:16px}
-.chip.cdel{min-width:48px;font-weight:400;font-size:12px;color:var(--red);border-color:#e6c9c6}
+.chip.cdel{min-width:48px;font-weight:400;font-size:12px;color:var(--red);border-color:var(--delline)}
 footer{margin-top:36px;padding-top:14px;border-top:1px solid var(--line);font-size:11.5px;color:var(--ink3)}
 </style>
 </head>
@@ -208,8 +260,15 @@ footer{margin-top:36px;padding-top:14px;border-top:1px solid var(--line);font-si
 
 <div class="setup hide" id="setup">
   <div class="card">
-    <h3>接続設定</h3>
-    <p>進捗を保存する GitHub の private リポジトリと、アクセストークンを設定します。入力内容はこの端末のブラウザにのみ保存され、外部には送信されません（GitHub API 以外への通信はありません）。</p>
+    <h3>設定</h3>
+    <label>画面の見た目</label>
+    <div class="themepick">
+      <button type="button" data-theme="auto">自動</button>
+      <button type="button" data-theme="light">明るい</button>
+      <button type="button" data-theme="dark">暗い</button>
+    </div>
+    <p class="hint">「自動」は iPhone の設定（外観モード）に合わせて切り替わります。</p>
+    <p class="sep">進捗を保存する GitHub の private リポジトリと、アクセストークンを設定します。入力内容はこの端末のブラウザにのみ保存され、外部には送信されません（GitHub API 以外への通信はありません）。</p>
     <label>リポジトリ（owner/repo）</label>
     <input id="inRepo" placeholder="例）owner/repo-name" autocapitalize="off" autocorrect="off" spellcheck="false">
     <label>ブランチ</label>
@@ -237,6 +296,30 @@ var filter="open", dirty=false, timer=null, busy=false;
 
 var $=function(s){return document.querySelector(s)};
 var el=function(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
+
+// 見た目（明るい／暗い）。既定は端末の設定に従う。
+var THEME_KEY="harel_stocktake_theme";
+function themePref(){ try{ var v=localStorage.getItem(THEME_KEY); return (v==="light"||v==="dark")?v:"auto"; }catch(e){ return "auto"; } }
+function applyTheme(v){
+  var root=document.documentElement;
+  if(v==="light"||v==="dark") root.setAttribute("data-theme",v); else root.removeAttribute("data-theme");
+  // iPhone のアドレスバーの色を、実際の背景に合わせる
+  var m=document.querySelector('meta[name="theme-color"]');
+  if(m) m.setAttribute("content", getComputedStyle(document.body).backgroundColor||"#faf9f5");
+  document.querySelectorAll(".themepick button").forEach(function(b){
+    b.setAttribute("aria-pressed", b.getAttribute("data-theme")===v ? "true" : "false");
+  });
+}
+function setTheme(v){ try{ if(v==="auto") localStorage.removeItem(THEME_KEY); else localStorage.setItem(THEME_KEY,v); }catch(e){} applyTheme(v); }
+document.querySelectorAll(".themepick button").forEach(function(b){
+  b.addEventListener("click",function(){ setTheme(b.getAttribute("data-theme")); });
+});
+// 「端末に合わせる」ときは、端末側の切り替えにも追随する
+if(window.matchMedia){
+  var mq=window.matchMedia("(prefers-color-scheme: dark)");
+  var onScheme=function(){ if(themePref()==="auto") applyTheme("auto"); };
+  if(mq.addEventListener) mq.addEventListener("change",onScheme); else if(mq.addListener) mq.addListener(onScheme);
+}
 
 // 形が壊れたJSONを読んでも画面が真っ白にならないようにする。
 // 進捗とコメントは岩﨑先生の入力そのものなので、開けなくなるのがいちばん困る。
@@ -658,8 +741,8 @@ $("#btnAdd").addEventListener("click",openAdd);
 $("#addCancel").addEventListener("click",closeAdd);
 $("#addSave").addEventListener("click",function(){
   var title=$("#inTitle").value.trim();
-  if(!title){ $("#inTitle").focus(); $("#inTitle").style.borderColor="#b8352b"; return; }
-  $("#inTitle").style.borderColor="";
+  if(!title){ $("#inTitle").focus(); $("#inTitle").classList.add("bad"); return; }
+  $("#inTitle").classList.remove("bad");
   addTask({title:title, client:$("#inClient").value.trim(), detail:$("#inDetail").value.trim(),
            due_label:$("#inDue").value.trim(), group:$("#inToday").checked?"today":"open"});
   closeAdd();
@@ -672,6 +755,7 @@ document.querySelectorAll(".filters button").forEach(function(b){
 });
 window.addEventListener("online",function(){ if(dirty) schedule(300); });
 
+applyTheme(themePref());
 loadLocal();
 render();
 if(!cfg.repo||!cfg.token){ $("#setup").classList.remove("hide"); status("err","未設定"); }
