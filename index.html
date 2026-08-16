@@ -42,6 +42,9 @@ padding:7px 14px;font-size:12px;font-family:inherit;color:var(--ink2)}
 padding:13px 16px;margin:14px 0 0;font-size:13.5px}
 .notice{background:var(--amberbg);border:1px solid #e8cfa4;border-radius:9px;padding:11px 14px;
 font-size:12.5px;color:var(--ink2);margin:12px 0 0}
+.notice.stale{background:var(--redbg);border-color:#dfb3af;color:var(--red);font-weight:700}
+.noticemore{display:block;width:100%;margin:8px 0 0;padding:9px;border:1px dashed #d9c9a4;
+border-radius:9px;background:transparent;color:var(--amber);font-size:12.5px;font-family:inherit;font-weight:700}
 
 .filters{display:flex;gap:7px;margin:18px 0 4px;overflow-x:auto;padding-bottom:4px}
 .filters button{flex:0 0 auto;border:1px solid var(--line);background:#fbfaf7;border-radius:18px;
@@ -473,6 +476,13 @@ function setComment(id,txt){
   prog.items[id]=it; dirty=true; saveLocal(); status("pend","未同期"); schedule(2500);
 }
 
+// 一覧の日付が今日から何日ズレているか（端末の日付基準。0=今日、1=昨日…）
+function staleDays(ds){
+  if(!ds||!/^\d{4}-\d{2}-\d{2}$/.test(ds)) return 0;
+  var now=new Date(); var today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  var p=ds.split("-"); var docday=new Date(+p[0],+p[1]-1,+p[2]);
+  return Math.max(0,Math.round((today-docday)/86400000));
+}
 function render(){
   if(!doc){ $("#list").innerHTML=""; return; }
   $("#eyebrow").textContent=doc.subtitle||"";
@@ -481,7 +491,24 @@ function render(){
   $("#meta").textContent=(doc.date||"")+" 版　タスク "+allTasks().length+"件";
   if(doc.headline){ $("#banner").textContent=doc.headline; $("#banner").classList.remove("hide"); }
   var nx=$("#notices"); nx.innerHTML="";
-  (doc.notices||[]).forEach(function(t){ nx.appendChild(el("div","notice",t)); });
+  // 一覧の日付が古いままなら、何より先にそれを知らせる（同期切れ・生成失敗の検知）
+  var stale=staleDays(doc.date);
+  if(stale>=1){
+    nx.appendChild(el("div","notice stale","この一覧は "+stale+" 日前（"+doc.date+"）のものです。毎朝の更新が届いていない可能性があります。"));
+  }
+  // お知らせは最初の2件だけ見せ、残りは畳む（読むべき行が埋もれないように）
+  var ns=(doc.notices||[]);
+  ns.slice(0,2).forEach(function(t){ nx.appendChild(el("div","notice",t)); });
+  if(ns.length>2){
+    var more=el("div"); var hidden=[];
+    ns.slice(2).forEach(function(t){ var d=el("div","notice",t); d.classList.add("hide"); hidden.push(d); more.appendChild(d); });
+    var btn=el("button","noticemore","他"+(ns.length-2)+"件のお知らせを見る");
+    btn.addEventListener("click",function(){
+      hidden.forEach(function(d){ d.classList.remove("hide"); });
+      btn.remove();
+    });
+    nx.appendChild(btn); nx.appendChild(more);
+  }
 
   counters();
 
@@ -544,7 +571,7 @@ function render(){
     var td1=el("td","d",c.date); var td2=el("td",null,c.text);
     tr.appendChild(td1); tr.appendChild(td2); cal.appendChild(tr);
   });
-  $("#foot").textContent="生成 "+(doc.generated_at||"")+"／進捗は GitHub の private リポジトリに保存されます。";
+  $("#foot").textContent="生成 "+(doc.generated_at||"")+"／進捗は GitHub の private リポジトリに保存されます。カレンダーの予定の追加・変更は行いません（提案のみ）。";
 }
 
 $("#btnSync").addEventListener("click",function(){ if(dirty) push(); else pull(); });
