@@ -289,31 +289,63 @@ select,input[type=text]{font-family:inherit;font-size:12px;padding:5px 8px;borde
 </style>
 
 <script>
-/* google.script.run 互換の橋渡し（外部ホスティング用） */
+/* google.script.run 互換の橋渡し（外部ホスティング用）
+ *
+ * api で始まる呼び出しは、名前を決め打ちせず何でも中継する。
+ * 決め打ちにしていたときは、新しく作った API を画面から呼んでも
+ * 何も起きず「保存中…」のまま止まっていた。
+ * 応答が返らないときのために時間切れも入れている。 */
 (function () {
   var API = "https://script.google.com/macros/s/AKfycbwYGmhBmBQUf3zf1gBiOkmo-s9YdhWth6j55KQ9gy8Y6CLYwd3mt-MZz1fbkbf2QVh_/exec";
+  var TIMEOUT_MS = 120000;
+
+  function call(fn, args, ok, ng) {
+    var done = false;
+    var timer = setTimeout(function () {
+      if (done) return;
+      done = true;
+      (ng || console.error)({ message: '応答がありません（通信が不安定か、処理に時間がかかっています）。もう一度お試しください。' });
+    }, TIMEOUT_MS);
+
+    fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ fn: fn, args: args }),
+      redirect: 'follow'
+    }).then(function (r) { return r.text(); }).then(function (text) {
+      if (done) return;
+      done = true; clearTimeout(timer);
+      var j;
+      try { j = JSON.parse(text); }
+      catch (e) { (ng || console.error)({ message: '応答を読み取れませんでした: ' + String(text).slice(0, 120) }); return; }
+      if (j && j.error) { (ng || console.error)({ message: j.error }); }
+      else { (ok || function () {})(j ? j.result : null); }
+    }).catch(function (e) {
+      if (done) return;
+      done = true; clearTimeout(timer);
+      (ng || console.error)({ message: '通信エラー: ' + e.message });
+    });
+  }
+
   function make(ok, ng) {
-    var h = {
+    var base = {
       withSuccessHandler: function (f) { return make(f, ng); },
       withFailureHandler: function (f) { return make(ok, f); }
     };
-    ['apiBootstrap', 'apiToggleItem', 'apiSetMemo', 'apiCreateAdhoc'].forEach(function (fn) {
-      h[fn] = function () {
-        var args = Array.prototype.slice.call(arguments);
-        fetch(API, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ fn: fn, args: args }),
-          redirect: 'follow'
-        }).then(function (r) { return r.json(); }).then(function (j) {
-          if (j && j.error) { (ng || console.error)({ message: j.error }); }
-          else { (ok || function () {})(j ? j.result : null); }
-        }).catch(function (e) {
-          (ng || console.error)({ message: '通信エラー: ' + e.message });
-        });
-      };
+    if (typeof Proxy === 'function') {
+      return new Proxy(base, {
+        get: function (target, prop) {
+          if (prop in target) return target[prop];
+          if (typeof prop !== 'string' || prop.indexOf('api') !== 0) return undefined;
+          return function () { call(prop, Array.prototype.slice.call(arguments), ok, ng); };
+        }
+      });
+    }
+    /* Proxy が使えない古い端末向け（現在の API 名を並べる） */
+    ["apiBootstrap","apiDeleteItem","apiReorderItems","apiSaveItem","apiSaveTemplate","apiSetClientServices","apiSetClientStaff","apiSetItemDate","apiSetMemo","apiSetTemplateActive","apiSetWorkers","apiTemplates","apiToggleItem"].forEach(function (fn) {
+      base[fn] = function () { call(fn, Array.prototype.slice.call(arguments), ok, ng); };
     });
-    return h;
+    return base;
   }
   window.google = { script: { run: make(null, null) } };
 })();
