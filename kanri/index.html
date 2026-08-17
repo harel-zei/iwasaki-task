@@ -146,12 +146,12 @@ select,input[type=text]{font-family:inherit;font-size:12px;padding:5px 8px;borde
 /* ---------- 一覧入力（マトリクス） ---------- */
 .grid-wrap{overflow:auto;max-height:72vh;border:1px solid var(--ring);border-radius:10px;background:var(--surface-1)}
 .gridt{border-collapse:separate;border-spacing:0;font-size:12px}
-/* 見出しは横書き。長い工程名は3行で折り返し、はみ出す分は「…」にする（全文はマウスを乗せると出る） */
-.gridt th.gh{width:96px;min-width:96px;padding:7px 8px;vertical-align:bottom;
+/* 見出しは縦書き（1文字の幅で折り返して縦に積む。端末による字の重なりを避けるため） */
+.gridt th.gh{height:190px;width:32px;min-width:32px;padding:8px 0;vertical-align:top;
   border-bottom:1px solid var(--ring);border-left:1px solid var(--ring);background:var(--plane);position:sticky;top:0;z-index:2}
-.gridt th.gh div{font-size:11.5px;font-weight:700;color:var(--ink-1);line-height:1.3;text-align:left;
-  white-space:normal;word-break:break-word;
-  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.gridt th.gh div{width:1em;margin:0 auto;font-size:12px;font-weight:700;color:var(--ink-1);
+  line-height:1.14;text-align:center;word-break:break-all;white-space:normal;
+  max-height:172px;overflow:hidden}
 .gridt th.gh0{position:sticky;top:0;left:0;z-index:4;background:var(--plane);border-bottom:1px solid var(--ring);text-align:left;padding:6px 10px;writing-mode:horizontal-tb}
 .gridt td.gc{border-left:1px solid var(--ring);border-bottom:1px dashed var(--ring);text-align:center;padding:3px 5px;min-width:26px}
 .gridt td.gc.na{color:var(--ink-3);font-size:10px}
@@ -200,28 +200,29 @@ select,input[type=text]{font-family:inherit;font-size:12px;padding:5px 8px;borde
 .itemrow .i-chk{display:flex;align-items:center;gap:3px;font-size:11px;color:var(--ink-2)}
 .itemrow .i-cond{font-size:10.5px;color:var(--series-1);min-width:110px}
 
-/* ---------- 受託業務（すべて横書き。1画面に1つの軸だけを出す） ---------- */
-.seg2{display:inline-flex;border:1px solid var(--axis);border-radius:8px;overflow:hidden}
-.seg2 button{background:transparent;border:0;padding:7px 14px;color:var(--ink-2);font-size:12.5px}
-.seg2 button[aria-pressed="true"]{background:var(--series-1);color:#fff;font-weight:700}
-.svc-wrap{overflow:auto;max-height:72vh;border:1px solid var(--ring);border-radius:10px;background:var(--surface-1)}
-.svct{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
-.svct th{position:sticky;top:0;z-index:2;background:var(--plane);text-align:left;white-space:nowrap;
-  font-size:11.5px;font-weight:700;color:var(--ink-2);padding:9px 12px;border-bottom:1px solid var(--axis)}
-.svct td{padding:9px 12px;border-bottom:1px solid var(--grid);vertical-align:middle}
-.svct tbody tr:hover td{background:rgba(127,127,127,.09)}
-.svct td.nm{font-size:13.5px}
-.svct td.nm .code{color:var(--ink-3);font-size:11px;margin-right:6px}
-.svct td.sub{color:var(--ink-3);font-size:12px;white-space:nowrap}
-.svct td.on{text-align:center;width:96px}
-.svct td.on input{width:20px;height:20px;cursor:pointer;accent-color:var(--series-1)}
-.svct tr.busy td{opacity:.45}
-.svct td.cat{white-space:nowrap}
-.svct td.cat i{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:6px}
-.svcbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.svcbar select,.svcbar input[type=text]{font-family:inherit;font-size:12.5px;padding:6px 9px;
-  border:1px solid var(--axis);border-radius:7px;background:var(--surface-1);color:var(--ink-1)}
-.svcbar select.big{font-size:13.5px;font-weight:700;padding:7px 10px;max-width:340px}
+/* ---------- 受託業務（顧問先 × 業務） ---------- */
+.svc-wrap{overflow:auto;max-height:74vh;border:1px solid var(--ring);border-radius:10px;background:var(--surface-1)}
+.svct{border-collapse:separate;border-spacing:0;font-size:12px}
+/* 見出しは縦書き（文字は起こしたまま上から下へ）。
+   CSS の writing-mode は端末のフォントによって字が重なることがあるため、
+   「1文字の幅で折り返す」方法で縦に積んでいる。どの端末でも同じに見える。 */
+.svct th.sv{height:200px;width:34px;min-width:34px;padding:8px 0 10px;position:relative;vertical-align:top;
+  background:var(--plane);position:sticky;top:0;z-index:2;border-left:1px solid var(--ring);border-bottom:1px solid var(--ring)}
+.svct th.sv:nth-child(even){background:var(--surface-1)}
+.svct th.sv div{width:1em;margin:0 auto;font-size:12.5px;font-weight:700;color:var(--ink-1);
+  line-height:1.14;text-align:center;word-break:break-all;white-space:normal;
+  max-height:180px;overflow:hidden}
+.svct th.sv i.cbar{position:absolute;left:0;right:0;bottom:0;height:3px}   /* 区分の色 */
+.svct tbody tr:hover td{background:rgba(127,127,127,.10)}
+.svct td.svc:nth-child(even){background:rgba(127,127,127,.045)}
+.svct th.sv0{position:sticky;top:0;left:0;z-index:4;background:var(--plane);text-align:left;padding:6px 10px;
+  writing-mode:horizontal-tb;border-bottom:1px solid var(--ring)}
+.svct td.svname{position:sticky;left:0;background:var(--surface-1);z-index:1;padding:5px 10px;min-width:230px;
+  border-bottom:1px dashed var(--ring);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.svct td.svname .code{color:var(--ink-3);font-size:10.5px;margin-right:4px}
+.svct td.svc{text-align:center;padding:3px 5px;border-left:1px solid var(--ring);border-bottom:1px dashed var(--ring);min-width:28px}
+.svct td.svc input{width:16px;height:16px;cursor:pointer;accent-color:var(--series-1)}
+.svct td.svc.busy{opacity:.4}
 
 /* ---------- task cards / checklist ---------- */
 .tcard{border:1px solid var(--ring);border-radius:10px;margin-bottom:9px;background:var(--surface-1);overflow:hidden}
@@ -747,126 +748,69 @@ function renderKarte(){
   };
 }
 
-/* ---- 受託業務（何を引き受けていて、何をやらないか） ----
-   縦書きの見出しをやめ、どちらの見方も横書きの一覧にした。
-     業務ごと  … 業務を1つ選び、顧問先を縦に並べて受託を切り替える
-     顧問先ごと … 顧問先を1つ選び、業務を縦に並べて受託を切り替える */
-const SV={mode:'tpl', tid:null, cid:null, month:'all', staff:'all', kind:'all', q:''};
+/* ---- 受託業務（行=顧問先 × 列=業務。何を引き受けて、何をやらないか） ---- */
+const SV={month:'all', staff:'all', kind:'all', q:'', cat:'all'};
 
 function renderSvc(){
-  if(!TEMPLATES.length || !CLIENTS.length){ $('#v-svc').innerHTML='<div class="card"><h2>データがありません</h2></div>'; return; }
-  if(!SV.tid || !TMAP[SV.tid]) SV.tid=TEMPLATES[0].id;
-  if(!SV.cid || !CMAP[SV.cid]) SV.cid=CLIENTS[0].id;
-
-  const seg=`<div class="seg2">
-    <button data-m="tpl" aria-pressed="${SV.mode==='tpl'}">業務ごとに見る</button>
-    <button data-m="client" aria-pressed="${SV.mode==='client'}">顧問先ごとに見る</button></div>`;
-
-  $('#v-svc').innerHTML = (SV.mode==='tpl' ? svcByTemplate(seg) : svcByClient(seg));
-
-  $('#v-svc').querySelectorAll('.seg2 button').forEach(b=>{
-    b.onclick=()=>{ SV.mode=b.dataset.m; renderSvc(); };
-  });
-  if(SV.mode==='tpl'){
-    $('#sv_tpl').onchange   = e=>{SV.tid=e.target.value; renderSvc();};
-    $('#sv_mon').onchange   = e=>{SV.month=e.target.value; renderSvc();};
-    $('#sv_staff').onchange = e=>{SV.staff=e.target.value; renderSvc();};
-    $('#sv_kind').onchange  = e=>{SV.kind=e.target.value; renderSvc();};
-    $('#sv_q').onchange     = e=>{SV.q=e.target.value.trim(); renderSvc();};
-  } else {
-    $('#sv_client').onchange = e=>{SV.cid=e.target.value; renderSvc();};
-  }
-}
-
-/* 表示する顧問先（絞り込み後） */
-function svcClientList(){
+  /* 39業務すべてを一度に出すと見づらいので、区分で絞り込めるようにする */
+  const cols = SV.cat==='all' ? TEMPLATES : TEMPLATES.filter(t=>t.cat===SV.cat);
   let list=CLIENTS.slice();
   if(SV.month!=='all') list=list.filter(c=>c.fiscalMonth===+SV.month);
   if(SV.staff!=='all') list=list.filter(c=>c.staff===SV.staff||c.zeirishi===SV.staff||c.reviewer===SV.staff);
   if(SV.kind!=='all')  list=list.filter(c=>c.kind===SV.kind);
   if(SV.q) list=list.filter(c=>(c.id+' '+c.name).indexOf(SV.q)>=0);
-  return list.sort((a,b)=>a.id<b.id?-1:1);
-}
+  list.sort((a,b)=>a.id<b.id?-1:1);
 
-/* ① 業務ごと：業務を選び、顧問先を縦に並べる */
-function svcByTemplate(seg){
-  const tpl=TMAP[SV.tid];
-  const list=svcClientList();
-  const on=list.filter(c=>(c.svc||[]).includes(SV.tid)).length;
-
-  const tplOpts=TEMPLATES.map(t=>{
-    const n=CLIENTS.filter(c=>(c.svc||[]).includes(t.id)).length;
-    return `<option value="${esc(t.id)}" ${t.id===SV.tid?'selected':''}>${esc(t.name)}（${n}社）</option>`;
+  const head=cols.map(t=>`<th class="sv" title="${esc(t.name)}｜${CAT[t.cat]?CAT[t.cat].label:''}">
+    <div>${esc(t.name)}</div>
+    <i class="cbar" style="background:${CAT[t.cat]?CAT[t.cat].color:'var(--axis)'}"></i></th>`).join('');
+  const body=list.map(c=>{
+    const has=new Set(c.svc||[]);
+    /* data-t は使わない。タスクのチェック処理（input[data-t]）に拾われてしまうため */
+    const cells=cols.map(t=>
+      `<td class="svc"><input type="checkbox" data-sc="${esc(c.id)}" data-st="${esc(t.id)}" ${has.has(t.id)?'checked':''}
+        title="${esc(c.name)}／${esc(t.name)}"></td>`).join('');
+    return `<tr><td class="svname" title="${esc(c.name)}">
+      <span class="code">${esc(c.id)}</span> ${esc(c.name)}
+      <span class="sub2" style="font-size:10px;color:var(--ink-3)"> ${c.fiscalMonth}月決算／${esc(c.staff||'担当未設定')}／<b id="svn-${esc(c.id)}">${has.size}</b> 業務</span>
+      </td>${cells}</tr>`;
   }).join('');
+
   const monOpts=`<option value="all">決算月：すべて</option>`
     + Array.from({length:12},(_,i)=>i+1).map(m=>`<option value="${m}" ${SV.month==String(m)?'selected':''}>${m}月決算</option>`).join('');
   const staffOpts=`<option value="all">担当：すべて</option>`
     + staffList().map(s=>`<option value="${esc(s)}" ${SV.staff===s?'selected':''}>${esc(s)}</option>`).join('');
   const kindOpts=`<option value="all">法人／個人：すべて</option>`
     + ['法人','個人'].map(k=>`<option value="${k}" ${SV.kind===k?'selected':''}>${k}</option>`).join('');
+  const catOpts=`<option value="all">業務の区分：すべて（${TEMPLATES.length}）</option>`
+    + Object.keys(CAT).map(k=>{
+        const n=TEMPLATES.filter(t=>t.cat===k).length;
+        return n ? `<option value="${k}" ${SV.cat===k?'selected':''}>${CAT[k].label}（${n}）</option>` : '';
+      }).join('');
 
-  const rows=list.map(c=>{
-    const has=(c.svc||[]).includes(SV.tid);
-    const n=TASKS.filter(t=>t.cid===c.id&&t.tid===SV.tid).length;
-    return `<tr data-cid="${esc(c.id)}">
-      <td class="nm"><span class="code">${esc(c.id)}</span>${esc(c.name)}</td>
-      <td class="sub">${c.kind||''}／${c.fiscalMonth}月決算</td>
-      <td class="sub">${esc(c.staff||'—')}</td>
-      <td class="sub">${n?n+' 件':'—'}</td>
-      <td class="on"><input type="checkbox" data-sc="${esc(c.id)}" data-st="${esc(SV.tid)}" ${has?'checked':''}></td>
-    </tr>`;
-  }).join('');
-
-  return `
-  <div class="card svcbar">${seg}
-    <select id="sv_tpl" class="big">${tplOpts}</select>
+  $('#v-svc').innerHTML=`
+  <div class="card fbar" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+    <select id="sv_cat">${catOpts}</select>
     <select id="sv_mon">${monOpts}</select>
     <select id="sv_staff">${staffOpts}</select>
     <select id="sv_kind">${kindOpts}</select>
-    <input type="text" id="sv_q" placeholder="顧問先名・コードで絞り込み" value="${esc(SV.q)}">
-    <span style="font-size:12px;color:var(--ink-2)">表示 ${list.length} 社中 <b>${on} 社</b>が受託</span>
-    <span class="sub" id="sv_msg" style="font-size:11.5px;color:var(--ink-3)"></span>
+    <input type="text" id="sv_q" placeholder="顧問先名・コードで絞り込み" value="${esc(SV.q)}"
+      style="font-family:inherit;font-size:12px;padding:5px 8px;border:1px solid var(--axis);border-radius:6px;background:var(--surface-1);color:var(--ink-1)">
+    <span class="cnt" style="font-size:11px;color:var(--ink-3)">${list.length} 社 × ${cols.length} 業務</span>
+    <span class="sub" id="sv_msg" style="font-size:11px;color:var(--ink-3)"></span>
   </div>
-  <div class="hint">「<b>${esc(tpl.name)}</b>」を引き受けている顧問先にチェックが入っています。
-    チェックを入れるとこの業務のタスクが作られ、外すと今後は作られません。
+  <div class="hint"><b>チェックが入っている業務だけ、タスクが作られます。</b>外すと今後は作られません。
     まだ手を付けていないタスクはその場で消えますが、<b>進捗が入っているタスクは記録として残します</b>。</div>
   <div class="svc-wrap"><table class="svct">
-    <thead><tr><th>顧問先</th><th>区分・決算月</th><th>担当</th><th>今あるタスク</th><th style="text-align:center">受託する</th></tr></thead>
-    <tbody>${rows}</tbody>
+    <thead><tr><th class="sv0">顧問先</th>${head}</tr></thead>
+    <tbody>${body}</tbody>
   </table></div>`;
-}
 
-/* ② 顧問先ごと：顧問先を選び、業務を縦に並べる */
-function svcByClient(seg){
-  const c=CMAP[SV.cid];
-  const has=new Set(c.svc||[]);
-  const cliOpts=CLIENTS.map(x=>
-    `<option value="${esc(x.id)}" ${x.id===SV.cid?'selected':''}>${esc(x.id)}　${esc(x.name)}（${(x.svc||[]).length}業務）</option>`).join('');
-
-  const rows=TEMPLATES.map(t=>{
-    const n=TASKS.filter(x=>x.cid===c.id&&x.tid===t.id).length;
-    const cat=CAT[t.cat]||{label:t.cat,color:'var(--axis)'};
-    return `<tr data-cid="${esc(c.id)}">
-      <td class="nm">${t.isNew?'<span class="newb">新</span> ':''}${esc(t.name)}</td>
-      <td class="cat sub"><i style="background:${cat.color}"></i>${esc(cat.label)}</td>
-      <td class="sub">${ANCHOR_LABEL[t.anchor]||esc(t.anchor)}</td>
-      <td class="sub">${n?n+' 件':'—'}</td>
-      <td class="on"><input type="checkbox" data-sc="${esc(c.id)}" data-st="${esc(t.id)}" ${has.has(t.id)?'checked':''}></td>
-    </tr>`;
-  }).join('');
-
-  return `
-  <div class="card svcbar">${seg}
-    <select id="sv_client" class="big">${cliOpts}</select>
-    <span style="font-size:12px;color:var(--ink-2)">全 ${TEMPLATES.length} 業務中 <b id="sv_cnt">${has.size} 業務</b>を受託</span>
-    <span class="sub" id="sv_msg" style="font-size:11.5px;color:var(--ink-3)"></span>
-  </div>
-  <div class="hint"><b>${esc(c.id)} ${esc(c.name)}</b>（${c.fiscalMonth}月決算／担当 ${esc(c.staff||'—')}）が引き受けている業務です。
-    チェックを外すと今後この業務のタスクは作られません。進捗が入っているタスクは記録として残します。</div>
-  <div class="svc-wrap"><table class="svct">
-    <thead><tr><th>業務</th><th>区分</th><th>期日の決まり方</th><th>今あるタスク</th><th style="text-align:center">受託する</th></tr></thead>
-    <tbody>${rows}</tbody>
-  </table></div>`;
+  $('#sv_cat').onchange  =e=>{SV.cat=e.target.value; renderSvc();};
+  $('#sv_mon').onchange  =e=>{SV.month=e.target.value; renderSvc();};
+  $('#sv_staff').onchange=e=>{SV.staff=e.target.value; renderSvc();};
+  $('#sv_kind').onchange =e=>{SV.kind=e.target.value; renderSvc();};
+  $('#sv_q').onchange    =e=>{SV.q=e.target.value.trim(); renderSvc();};
 }
 
 /* 受託のチェックを切り替えたら、その場で保存する */
@@ -877,14 +821,14 @@ document.addEventListener('change',e=>{
   const set=new Set(c.svc||[]);
   on ? set.add(tid) : set.delete(tid);
   const next=TEMPLATES.filter(t=>set.has(t.id)).map(t=>t.id);   // 業務の並び順にそろえる
-  const tr=cb.closest('tr'); tr.classList.add('busy');
+  const td=cb.closest('td'); td.classList.add('busy');
   const msg=$('#sv_msg'); if(msg) msg.textContent='保存中…';
 
   google.script.run
     .withSuccessHandler(r=>{
       c.svc=next;
-      tr.classList.remove('busy');
-      const cnt=$('#sv_cnt'); if(cnt) cnt.textContent=next.length+' 業務';
+      td.classList.remove('busy');
+      const n=$('#svn-'+cid); if(n) n.textContent=next.length;
       if(msg) msg.textContent = (r && r.removed)
         ? `保存しました（未着手のタスク ${r.removed} 件を整理${r.kept?`／進捗ありの ${r.kept} 件は残しました`:''}）`
         : '保存しました';
@@ -894,11 +838,12 @@ document.addEventListener('change',e=>{
       }
     })
     .withFailureHandler(err=>{
-      cb.checked=!on; tr.classList.remove('busy');
+      cb.checked=!on; td.classList.remove('busy');
       if(msg) msg.textContent='⚠ 保存できませんでした: '+(err&&err.message||err);
     })
     .apiSetClientServices(KEY, cid, next, WHO());
 });
+
 /* ---- 業務テンプレート（追加・変更・並べ替え・無効化） ---- */
 const ANCHOR_LABEL={fiscal:'決算日を基準に自動展開',calendar:'暦の固定日',monthly:'毎月／隔月（期限を基準）',adhoc:'都度発生'};
 let TMPL_EDIT=null;        // いま編集している業務ID（null なら編集していない）
