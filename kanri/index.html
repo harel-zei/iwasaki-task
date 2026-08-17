@@ -114,19 +114,34 @@ select,input[type=text]{font-family:inherit;font-size:12px;padding:5px 8px;borde
 
 /* ---------- task modal（ガントから開く小窓） ---------- */
 .mov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:90;display:flex;align-items:center;justify-content:center;padding:20px}
-.modal{background:var(--surface-1);border:1px solid var(--ring);border-radius:12px;width:min(680px,96vw);max-height:86vh;display:flex;flex-direction:column;box-shadow:0 18px 50px rgba(0,0,0,.35)}
+.modal{background:var(--surface-1);border:1px solid var(--ring);border-radius:12px;width:min(860px,96vw);max-height:92vh;display:flex;flex-direction:column;box-shadow:0 18px 50px rgba(0,0,0,.35)}
 .mhead{display:flex;align-items:flex-start;gap:10px;padding:14px 16px;border-bottom:1px solid var(--ring)}
-.mhead .mt{font-weight:700;font-size:14px}
-.mhead .ms{font-size:11px;color:var(--ink-3);margin-top:3px}
-.mclose{margin-left:auto;background:none;border:1px solid var(--ring);border-radius:8px;color:var(--ink-2);cursor:pointer;font-size:14px;line-height:1;padding:6px 10px}
-.mbody{overflow-y:auto;padding:12px 16px}
-.mrow{display:flex;align-items:center;gap:9px;padding:7px 2px;border-bottom:1px dashed var(--ring);font-size:12.5px}
-.mrow .md{margin-left:auto;font-size:11px;color:var(--ink-3);white-space:nowrap}
+.mhead .mt{font-weight:700;font-size:16px}
+.mhead .ms{font-size:12.5px;color:var(--ink-3);margin-top:4px;line-height:1.7}
+.mclose{margin-left:auto;background:none;border:1px solid var(--ring);border-radius:8px;color:var(--ink-2);cursor:pointer;font-size:15px;line-height:1;padding:8px 12px}
+.mbody{overflow-y:auto;padding:12px 16px;flex:1}
+.mrow{display:flex;align-items:center;gap:10px;padding:10px 2px;border-bottom:1px dashed var(--ring);font-size:14px;flex-wrap:wrap}
+.mrow input[type=checkbox]{width:19px;height:19px;flex:none;accent-color:var(--series-1)}
+.mrow .mtx{flex:1;min-width:180px}
+.mrow .md{font-size:11.5px;color:var(--ink-3);white-space:nowrap}
+.mdate{font-family:inherit;font-size:13px;padding:5px 7px;border:1px solid var(--axis);border-radius:6px;background:var(--plane);color:var(--ink-1);flex:none}
+.mworkers{padding:10px 16px;border-top:1px solid var(--ring)}
+.mworkers .wlab{font-size:12px;color:var(--ink-2);margin-bottom:7px}
+.wchips{display:flex;gap:7px;flex-wrap:wrap}
+.wchip{display:inline-flex;align-items:center;padding:7px 13px;border:1px solid var(--axis);border-radius:999px;font-size:13px;color:var(--ink-2);cursor:pointer;user-select:none}
+.wchip.on{background:var(--series-1);border-color:var(--series-1);color:#fff;font-weight:700}
 .mmemo{padding:12px 16px;border-top:1px solid var(--ring)}
-.mmemo textarea{width:100%;min-height:64px;background:var(--plane);color:var(--ink-1);border:1px solid var(--ring);border-radius:8px;padding:8px;font-size:12.5px;font-family:inherit;resize:vertical}
+.mmemo textarea{width:100%;min-height:72px;background:var(--plane);color:var(--ink-1);border:1px solid var(--ring);border-radius:8px;padding:10px;font-size:14px;font-family:inherit;resize:vertical}
 .mmemo .mbar{display:flex;align-items:center;gap:10px;margin-top:8px}
-.mmemo button{background:var(--series-1);color:#fff;border:none;border-radius:8px;padding:7px 16px;cursor:pointer;font-size:12.5px}
+.mmemo button{background:var(--series-1);color:#fff;border:none;border-radius:8px;padding:9px 18px;cursor:pointer;font-size:13.5px}
 .mmemo .msg{font-size:11px;color:var(--ink-3)}
+/* スマホでは小窓をほぼ全画面にする */
+@media (max-width:640px){
+  .mov{padding:0;align-items:stretch}
+  .modal{width:100vw;max-height:none;height:100dvh;border-radius:0;border:0}
+  .mhead .mt{font-size:15px}
+  .mrow{font-size:14.5px}
+}
 
 /* ---------- 一覧入力（マトリクス） ---------- */
 .grid-wrap{overflow:auto;max-height:72vh;border:1px solid var(--ring);border-radius:10px;background:var(--surface-1)}
@@ -611,6 +626,22 @@ function renderKarte(){
       いずれも既存の管理表に列が存在しないため、移行時に新規調査が必要です。</div>
   </div>
 
+  <div class="card"><h2>担当の変更</h2>
+    <div class="sub">この顧問先の担当は、この画面でのみ変更できます（タスクの小窓では表示のみ）。</div>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center">
+      ${[['es-z','担当税理士',c.zeirishi],['es-s','作成担当',c.staff],['es-r','確認者',c.reviewer]].map(([id,lab,cur])=>`
+        <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-2)">${lab}
+          <select id="${id}">
+            <option value="">（未設定）</option>
+            ${[...new Set([...(staffList()),cur].filter(Boolean))].sort().map(n=>
+              `<option value="${esc(n)}" ${n===cur?'selected':''}>${esc(n)}</option>`).join('')}
+          </select>
+        </label>`).join('')}
+      <button id="es-save" style="background:var(--series-1);color:#fff;border:none;border-radius:8px;padding:8px 18px;cursor:pointer;font-size:12.5px">保存</button>
+      <span id="es-msg" style="font-size:11px;color:var(--ink-3)"></span>
+    </div>
+  </div>
+
   <div class="card"><h2>税目別の納付方法</h2>
     <div class="sub">既存管理表の「ダイレクト／先方ダイレクト／ペイジー／納付書／持参／手渡／先方手配／振替納税／クレカ／ゼロ納付」を A〜K に正規化したものです。ここの設定で下のチェックリストの項目が切り替わります。</div>
     <table><thead><tr><th style="width:150px">税目</th><th style="width:44px">区分</th><th>運用</th></tr></thead><tbody>
@@ -622,6 +653,20 @@ function renderKarte(){
     <div class="sub">行をクリックすると項目が開きます。★＝飛ばすと事故になる項目、<span class="addb">追加</span>＝既存の管理表に無かった項目、<span class="newb">新</span>＝業務ごと新規です。右端は各項目の社内目標日。</div>
     ${cards}</div>`;
   $('#csel').onchange=e=>{curClient=e.target.value;renderKarte()};
+
+  /* 担当の変更（この画面でのみ可能） */
+  $('#es-save').onclick=()=>{
+    const patch={zeirishi:$('#es-z').value, staff:$('#es-s').value, reviewer:$('#es-r').value};
+    $('#es-msg').textContent='保存中…';
+    google.script.run
+      .withSuccessHandler(()=>{
+        c.zeirishi=patch.zeirishi; c.staff=patch.staff; c.reviewer=patch.reviewer;
+        $('#es-msg').textContent='保存しました';
+        renderKarte();
+      })
+      .withFailureHandler(err=>{ $('#es-msg').textContent='⚠ 保存できませんでした: '+(err&&err.message||err); })
+      .apiSetClientStaff(KEY, c.id, patch, WHO());
+  };
 }
 
 /* ---- 業務テンプレート ---- */
@@ -743,6 +788,28 @@ document.addEventListener('keydown',e=>{
 /* ---- タスクの小窓（ガントのバーをクリックで開く） ---- */
 function closeModal(){ const m=$('#tmodal'); if(m) m.remove(); }
 
+/* 工程日付の文字列（'2026-05-27|…' または旧 '5/27|…'）→ date入力用 ISO に */
+function dateArr(t){ return String(t.dates||'').split('|'); }
+function toISO(s, t){
+  s=String(s||'').trim();
+  if(!s) return '';
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const m=s.match(/^(\d{1,2})\/(\d{1,2})$/);
+  if(m){ const y=(t&&t.due?t.due:new Date()).getFullYear();
+    return y+'-'+String(m[1]).padStart(2,'0')+'-'+String(m[2]).padStart(2,'0'); }
+  return '';
+}
+
+/* 開いている小窓の日付欄を、タスクの最新の値に合わせる（チェック時の自動記録を反映） */
+function syncModalDates(t){
+  const m=$('#tmodal'); if(!m || m.dataset.task!==t.id) return;
+  const ds=dateArr(t);
+  m.querySelectorAll('.mdate').forEach(inp=>{
+    const iso=toISO(ds[+inp.dataset.i], t);
+    if(inp.value!==iso) inp.value=iso;
+  });
+}
+
 function openTaskModal(taskId){
   closeModal();
   const t=TASKS.find(x=>x.id===taskId);
@@ -750,26 +817,36 @@ function openTaskModal(taskId){
   const c=CMAP[t.cid]||{};
   const st=ST[status(t)], p=Math.round(prog(t)*100);
   const done=state.done[t.id]||new Set();
+  const ds=dateArr(t);
   const rows=t.items.map((it,ix)=>`
     <label class="mrow">
       <input type="checkbox" data-t="${esc(t.id)}" data-i="${ix}" ${done.has(ix)?'checked':''}>
-      <span>${it.star?'<span class="star">★</span> ':''}${esc(it.t.replace(/^★ /,''))}</span>
-      ${it.cond?`<span class="cond">${esc(it.cond)}</span>`:''}
-      ${it.add?'<span class="addb">追加</span>':''}
-      <span class="md">${md(it.date)}</span>
+      <span class="mtx">${it.star?'<span class="star">★</span> ':''}${esc(it.t.replace(/^★ /,''))}
+        ${it.cond?`<span class="cond">${esc(it.cond)}</span>`:''}
+        ${it.add?'<span class="addb">追加</span>':''}</span>
+      <span class="md">目標 ${md(it.date)}</span>
+      <input type="date" class="mdate" data-t="${esc(t.id)}" data-i="${ix}" value="${toISO(ds[ix],t)}" title="実施日（チェックすると自動で入ります。手で直せます）">
     </label>`).join('');
+  const workers=new Set(String(t.workers||'').split(',').map(s=>s.trim()).filter(String));
+  const chips=staffList().map(n=>
+    `<span class="wchip ${workers.has(n)?'on':''}" data-w="${esc(n)}">${esc(n)}</span>`).join('');
   const ov=document.createElement('div');
-  ov.className='mov'; ov.id='tmodal';
+  ov.className='mov'; ov.id='tmodal'; ov.dataset.task=t.id;
   ov.innerHTML=`
     <div class="modal">
       <div class="mhead">
         <div>
           <div class="mt">${esc(t.cid)} ${esc(t.cname)}｜${esc(t.name)}</div>
-          <div class="ms">${esc(t.period)}｜着手 ${d2s(t.start)}／期日 ${d2s(t.due)}｜進捗 <b id="mprog">${p}%</b>｜<span class="badge ${st.c}">${st.l}</span></div>
+          <div class="ms">${esc(t.period)}｜着手 ${d2s(t.start)}／期日 ${d2s(t.due)}｜進捗 <b id="mprog">${p}%</b>｜<span class="badge ${st.c}">${st.l}</span><br>
+          担当：税理士 ${esc(c.zeirishi||'—')}／作成 ${esc(c.staff||'—')}／確認 ${esc(c.reviewer||'—')}<span style="color:var(--ink-3)">（担当の変更は顧問先カルテで）</span></div>
         </div>
         <button class="mclose" id="mclose">✕ 閉じる</button>
       </div>
       <div class="mbody">${rows||'<div class="sub">チェック項目はありません</div>'}</div>
+      <div class="mworkers">
+        <div class="wlab">作業者（複数選択可・押すたびに切り替わります）<span class="msg" id="wmsg"></span></div>
+        <div class="wchips">${chips}</div>
+      </div>
       <div class="mmemo">
         <textarea id="mnote" placeholder="メモ（例：5/19 資料一部未着、6月に再依頼）">${esc(t.note||'')}</textarea>
         <div class="mbar">
@@ -781,6 +858,20 @@ function openTaskModal(taskId){
   document.body.appendChild(ov);
   ov.addEventListener('click',e=>{ if(e.target===ov) closeModal(); });
   $('#mclose').onclick=closeModal;
+
+  /* 作業者チップ：押すたびに切替→即保存 */
+  ov.querySelectorAll('.wchip').forEach(ch=>{
+    ch.onclick=()=>{
+      ch.classList.toggle('on');
+      const sel=[...ov.querySelectorAll('.wchip.on')].map(x=>x.dataset.w);
+      $('#wmsg').textContent=' 保存中…';
+      google.script.run
+        .withSuccessHandler(saved=>{ t.workers=saved; $('#wmsg').textContent=' 保存しました'; })
+        .withFailureHandler(err=>{ $('#wmsg').textContent=' ⚠ 保存できませんでした: '+(err&&err.message||err); })
+        .apiSetWorkers(KEY, t.id, sel, WHO());
+    };
+  });
+
   $('#msave').onclick=()=>{
     const v=$('#mnote').value;
     $('#mmsg').textContent='保存中…';
@@ -790,6 +881,20 @@ function openTaskModal(taskId){
       .apiSetMemo(KEY, t.id, v, WHO());
   };
 }
+
+/* 工程の日付欄の変更を保存する */
+document.addEventListener('change',e=>{
+  const inp=e.target.closest('input.mdate'); if(!inp) return;
+  const id=inp.dataset.t, ix=+inp.dataset.i, v=inp.value;   // '' か 'yyyy-mm-dd'
+  const t=TASKS.find(x=>x.id===id); if(!t) return;
+  google.script.run
+    .withSuccessHandler(r=>{ if(r && r.dates!==undefined) t.dates=r.dates; })
+    .withFailureHandler(err=>{
+      syncModalDates(t);
+      alert('日付を保存できませんでした。\n\n'+(err&&err.message?err.message:err));
+    })
+    .apiSetItemDate(KEY, id, ix, v, WHO());
+});
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
 document.addEventListener('click',e=>{
   const bar=e.target.closest('.gbar[data-task], .gname[data-task]');
@@ -889,7 +994,7 @@ function adaptTask(t){
     name:tpl.name||t.tid, cat:tpl.cat||'', isNew:!!tpl.isNew,
     period:t.period, start:new Date(t.start+'T00:00:00'), due:due,
     memo:tpl.memo||'', src:tpl.src||'', bits:t.bits||'',
-    note:t.note||'',
+    note:t.note||'', dates:t.dates||'', workers:t.workers||'',
     items: itemsForClient(tpl, c, due)
   };
 }
@@ -931,11 +1036,14 @@ function pumpSave_(id){
   const [ix, val] = q.next.shift();
   sub('保存中…');
   google.script.run
-    .withSuccessHandler(bits=>{
+    .withSuccessHandler(r=>{
       const t=TASKS.find(x=>x.id===id);
       if(t){
-        t.bits=bits;
+        /* サーバは {bits, dates} を返す（旧版はビット列の文字列のみ） */
+        if(r && typeof r==='object'){ t.bits=r.bits||''; if(r.dates!==undefined) t.dates=r.dates; }
+        else t.bits=r||'';
         if(!q.next.length) applyBits(t);   // 送信待ちが残っている間は画面の状態を優先
+        syncModalDates(t);                 // 小窓が開いていれば自動記録された日付を映す
       }
       q.busy=false;
       if(!q.next.length && Object.values(saveQ).every(x=>!x.busy && !x.next.length)) sub(SUBTITLE);
@@ -991,9 +1099,14 @@ function showGate(msg){
   setTimeout(()=>{ const g=$('#gatekey'); if(g) g.focus(); }, 50);
 }
 
+/* 職員名の一覧（記入者・作業者・担当の選択肢に使う） */
+function staffList(){
+  return [...new Set(CLIENTS.flatMap(c=>[c.staff,c.zeirishi,c.reviewer]))].filter(Boolean).sort();
+}
+
 /* 記入者プルダウン：チェック・メモの「誰が」に残る名前 */
 function fillWho(){
-  const names=[...new Set(CLIENTS.flatMap(c=>[c.staff,c.zeirishi,c.reviewer]))].filter(Boolean).sort();
+  const names=staffList();
   const cur=WHO();
   $('#who').innerHTML='<option value="">記入者を選択</option>'
     + names.map(n=>`<option value="${esc(n)}" ${n===cur?'selected':''}>記入者：${esc(n)}</option>`).join('');
