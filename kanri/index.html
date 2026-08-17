@@ -156,6 +156,23 @@ select,input[type=text]{font-family:inherit;font-size:12px;padding:5px 8px;borde
 .gridt td.gname .sub2{font-size:10px;color:var(--ink-3);margin-top:1px}
 .gridt input[type=checkbox]{width:15px;height:15px;cursor:pointer}
 .gridt input[type=checkbox]:focus{outline:2px solid var(--series-1);outline-offset:1px}
+/* 日付を直接打つセル（旧管理表の「5/27」方式） */
+.gc input.gdate{width:56px;padding:4px 2px;font-size:12px;text-align:center;background:transparent;
+  border:1px solid transparent;border-radius:5px;color:var(--ink-3);font-family:inherit;font-variant-numeric:tabular-nums}
+.gc input.gdate:focus{border-color:var(--series-1);background:var(--plane);outline:none;color:var(--ink-1)}
+.gc input.gdate.on{color:var(--good-ink);font-weight:700}
+.gc input.gdate.err{border-color:var(--critical)}
+/* 一覧入力の作業者セル */
+.gridt td.gworker{border-left:1px solid var(--ring);border-bottom:1px dashed var(--ring);padding:4px 8px;
+  min-width:76px;max-width:130px;font-size:11px;color:var(--ink-2);cursor:pointer;white-space:normal;line-height:1.4}
+.gridt td.gworker:hover{background:var(--plane)}
+.gridt td.gworker .none{color:var(--ink-3)}
+.gridt th.ghw{position:sticky;top:0;z-index:2;background:var(--plane);border-bottom:1px solid var(--ring);
+  border-left:1px solid var(--ring);font-size:10.5px;color:var(--ink-2);padding:6px 8px;writing-mode:horizontal-tb;vertical-align:bottom}
+/* 作業者の直接選択（セルの下に開く小さなリスト。画面遷移も小窓もなし） */
+.wpop{position:absolute;z-index:95;background:var(--surface-1);border:1px solid var(--axis);border-radius:10px;
+  padding:10px;box-shadow:0 10px 30px rgba(0,0,0,.35);max-width:360px}
+.wpop .wlab{font-size:11px;color:var(--ink-3);margin-bottom:7px}
 
 /* ---------- task cards / checklist ---------- */
 .tcard{border:1px solid var(--ring);border-radius:10px;margin-bottom:9px;background:var(--surface-1);overflow:hidden}
@@ -576,6 +593,7 @@ function renderKarte(){
   const cards=ts.map(t=>{
     const st=status(t), p=Math.round(prog(t)*100);
     const dset=state.done[t.id]||new Set();
+    const ds=dateArr(t);
     const items=t.items.map((it,ix)=>{
       const dn=dset.has(ix), over=!dn&&it.date<today;
       return `<label class="chk ${dn?'done':''}">
@@ -583,7 +601,9 @@ function renderKarte(){
         <span class="ct">${it.star?'<span class="star">★</span> ':''}${esc(it.t.replace(/^★ /,''))}
           ${it.cond?`<span class="cond">${esc(it.cond)}</span>`:''}
           ${it.add?'<span class="addb">追加</span>':''}</span>
-        <span class="cd" style="${over?'color:var(--critical);font-weight:700':''}">${md(it.date)}</span></label>`}).join('');
+        <span class="cd" style="${over?'color:var(--critical);font-weight:700':''}">${md(it.date)}</span>
+        <input type="date" class="mdate" data-t="${t.id}" data-i="${ix}" value="${toISO(ds[ix],t)}"
+          title="実施日（チェックすると自動で入ります。手で直せます）"></label>`}).join('');
     return `<div class="tcard" data-tc="${t.id}">
       <div class="thead"><i class="dot" style="background:${CAT[t.cat].color}"></i>
         <div><div class="tt">${t.isNew?'<span class="newb">新</span> ':''}${esc(t.name)}</div>
@@ -735,17 +755,24 @@ function renderGrid(){
     const c=CMAP[t.cid]||{};
     const done=state.done[t.id]||new Set();
     const st=ST[status(t)];
+    const ds=dateArr(t);
     const cells=tpl.items.map((it,ti)=>{
       const pos=t.items.findIndex(x=>x.i===ti);
       if(pos<0) return `<td class="gc na">―</td>`;
       const dt=t.items[pos].date;
-      return `<td class="gc"><input type="checkbox" data-t="${esc(t.id)}" data-i="${pos}" data-r="${r}" data-c="${ti}"
-        ${done.has(pos)?'checked':''} title="${esc(it.t)}｜社内目標 ${md(dt)}"></td>`;
+      const dv=ds[pos] ? dispDate(ds[pos]) : (done.has(pos)?'✓':'');
+      return `<td class="gc"><input type="text" class="gdate ${dv?'on':''}" data-t="${esc(t.id)}" data-i="${pos}" data-r="${r}" data-c="${ti}"
+        value="${esc(dv)}" data-prev="${esc(dv)}" autocomplete="off" spellcheck="false"
+        title="${esc(it.t)}｜社内目標 ${md(dt)}｜日付を直接入力（例 5/27）。空にすると未実施に戻る"></td>`;
     }).join('');
+    const ws=String(t.workers||'').split(',').map(s=>s.trim()).filter(String);
     return `<tr>
       <td class="gname" data-task="${esc(t.id)}" title="クリックで小窓（メモ入力）">
         <span class="code">${esc(t.cid)}</span> ${esc(c.name||t.cid)}
         <div class="sub2">${esc(t.period)}｜${md(t.due)}締切｜<span class="badge ${st.c}">${st.l}</span>${t.note?'｜📝':''}</div>
+      </td>
+      <td class="gworker" data-task="${esc(t.id)}" title="クリックで作業者を選択（複数可）">
+        ${ws.length?esc(ws.join('、')):'<span class="none">＋作業者</span>'}
       </td>${cells}</tr>`;
   }).join('');
 
@@ -757,9 +784,12 @@ function renderGrid(){
     <select id="gr_staff">${staffOpts}</select>
     <span class="cnt">${rows.length} 社（行）</span>
   </div>
-  <div class="hint">旧管理表と同じ「行=顧問先 × 列=工程」です。セルをクリックでチェック（自動保存）。矢印キーで移動、Enter でチェックして下の行へ。顧問先名をクリックすると小窓が開き、メモを書けます。「―」はその顧問先には出ない工程（納付方法などの条件）です。</div>
+  <div class="hint">旧管理表と同じ「行=顧問先 × 列=工程」で、<b>セルに日付を直接入力</b>できます（例 <b>5/27</b>）。
+    空のセルで <b>スペース</b>を押すと今日の日付が入ります。空に戻すと未実施になります。
+    <b>作業者</b>列をクリックすると、その場で作業者（複数可）を選べます。
+    矢印キーで移動、Enter で下の行へ。顧問先名クリックでメモ用の小窓が開きます。「―」は条件により出ない工程です。</div>
   <div class="grid-wrap"><table class="gridt">
-    <thead><tr><th class="gname gh0">顧問先</th>${head}</tr></thead>
+    <thead><tr><th class="gname gh0">顧問先</th><th class="ghw">作業者</th>${head}</tr></thead>
     <tbody>${body}</tbody>
   </table></div>`;
 
@@ -782,8 +812,131 @@ document.addEventListener('keydown',e=>{
   if(e.key==='ArrowLeft'){ e.preventDefault(); for(let i=c-1;i>=0;i--){ if(document.querySelector(`.gridt input[data-r="${r}"][data-c="${i}"]`)) return go(r,i);} }
   if(e.key==='ArrowDown'){ e.preventDefault(); go(r+1,c); }
   if(e.key==='ArrowUp'){ e.preventDefault(); go(r-1,c); }
+  if(el.classList.contains('gdate')){
+    if(e.key==='Enter'){ e.preventDefault(); commitGdate(el); go(r+1,c); }
+    if(e.key===' ' && el.value.trim()===''){   /* 空セルでスペース → 今日の日付 */
+      e.preventDefault();
+      el.value=(today.getMonth()+1)+'/'+today.getDate();
+      commitGdate(el);
+    }
+    if(e.key==='Escape'){ el.value=el.dataset.prev||''; el.blur(); }
+    return;
+  }
   if(e.key==='Enter'){ e.preventDefault(); el.click(); go(r+1,c); }
 });
+
+/* ---- 一覧入力：日付セルの直接入力 ---- */
+
+/* 保存形式（'2026-05-27' か 旧 '5/27'）→ 表示形式 '5/27' */
+function dispDate(s){
+  s=String(s||'').trim();
+  let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if(m) return (+m[2])+'/'+(+m[3]);
+  m=s.match(/^(\d{1,2})\/(\d{1,2})$/);
+  return m ? (+m[1])+'/'+(+m[2]) : '';
+}
+
+/* 手入力（'5/27'・'2026/5/27'・'5-27'）→ ISO。年は工程の目標日に一番近い年で補う */
+function parseUserDate(raw, target){
+  raw=String(raw||'').trim();
+  let m=raw.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+  if(m){ const mo=+m[2], d=+m[3];
+    if(mo<1||mo>12||d<1||d>31) return null;
+    return m[1]+'-'+String(mo).padStart(2,'0')+'-'+String(d).padStart(2,'0'); }
+  m=raw.match(/^(\d{1,2})[-/](\d{1,2})$/);
+  if(!m) return null;
+  const mo=+m[1], d=+m[2];
+  if(mo<1||mo>12||d<1||d>31) return null;
+  const base=(target instanceof Date && !isNaN(target)) ? target : today;
+  let best=base.getFullYear(), bd=Infinity;
+  [best-1,best,best+1].forEach(y=>{
+    const diff=Math.abs(new Date(y,mo-1,d)-base);
+    if(diff<bd){ bd=diff; best=y; }
+  });
+  return best+'-'+String(mo).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+}
+
+/* 日付セルの内容を確定して保存する */
+function commitGdate(el){
+  const id=el.dataset.t, ix=+el.dataset.i;
+  const t=TASKS.find(x=>x.id===id); if(!t) return;
+  const raw=el.value.trim();
+  const prev=el.dataset.prev||'';
+  el.classList.remove('err');
+  if(raw===prev) return;                       // 変化なし
+
+  const done=(state.done[id] ||= new Set());
+  if(raw==='' ){                               // 空 → 未実施に戻す
+    done.delete(ix);
+    el.classList.remove('on');
+    el.dataset.prev='';
+    scheduleRedraw();
+    saveBit(id, ix, false);
+    return;
+  }
+  if(raw==='✓') { el.dataset.prev='✓'; return; }   // 日付なしの旧チェックはそのまま
+
+  const iso=parseUserDate(raw, (t.items[ix]||{}).date);
+  if(!iso){                                    // 読めない → 元に戻して赤枠
+    el.value=prev; el.classList.add('err');
+    setTimeout(()=>el.classList.remove('err'), 1200);
+    return;
+  }
+  const shown=dispDate(iso);
+  el.value=shown; el.dataset.prev=shown; el.classList.add('on');
+  const wasDone=done.has(ix);
+  done.add(ix);
+  scheduleRedraw();
+  if(wasDone){                                 // チェック済みで日付だけ変更
+    google.script.run
+      .withSuccessHandler(r=>{ if(r&&r.dates!==undefined){ t.dates=r.dates; syncModalDates(t); } })
+      .withFailureHandler(err=>{ alert('日付を保存できませんでした。\n\n'+(err&&err.message||err)); })
+      .apiSetItemDate(KEY, id, ix, iso, WHO());
+  } else {                                     // 新規チェック＋日付
+    saveBit(id, ix, true, iso);
+  }
+}
+document.addEventListener('focusin',e=>{
+  const el=e.target.closest('input.gdate'); if(el) el.select();
+});
+document.addEventListener('change',e=>{
+  const el=e.target.closest('input.gdate'); if(el) commitGdate(el);
+});
+
+/* ---- 一覧入力：作業者の直接選択（セルの下に小さなリストを開く） ---- */
+function closeWpop(){ const p=$('#wpop'); if(p) p.remove(); }
+document.addEventListener('click',e=>{
+  const td=e.target.closest('td.gworker');
+  if(!td){ if(!e.target.closest('#wpop')) closeWpop(); return; }
+  closeWpop();
+  const t=TASKS.find(x=>x.id===td.dataset.task); if(!t) return;
+  const sel=new Set(String(t.workers||'').split(',').map(s=>s.trim()).filter(String));
+  const pop=document.createElement('div');
+  pop.className='wpop'; pop.id='wpop';
+  pop.innerHTML=`<div class="wlab">作業者（複数可・押すたびに切替）<span id="wpmsg"></span></div>
+    <div class="wchips">${staffList().map(n=>
+      `<span class="wchip ${sel.has(n)?'on':''}" data-w="${esc(n)}">${esc(n)}</span>`).join('')}</div>`;
+  document.body.appendChild(pop);
+  const rc=td.getBoundingClientRect();
+  pop.style.left=Math.min(rc.left+window.scrollX, window.scrollX+document.documentElement.clientWidth-pop.offsetWidth-10)+'px';
+  pop.style.top=(rc.bottom+window.scrollY+4)+'px';
+  pop.querySelectorAll('.wchip').forEach(ch=>{
+    ch.onclick=ev=>{
+      ev.stopPropagation();
+      ch.classList.toggle('on');
+      const names=[...pop.querySelectorAll('.wchip.on')].map(x=>x.dataset.w);
+      $('#wpmsg').textContent=' 保存中…';
+      google.script.run
+        .withSuccessHandler(saved=>{
+          t.workers=saved; $('#wpmsg').textContent=' 保存しました';
+          td.innerHTML=saved?esc(saved.split(',').join('、')):'<span class="none">＋作業者</span>';
+        })
+        .withFailureHandler(err=>{ $('#wpmsg').textContent=' ⚠ 保存できませんでした'; })
+        .apiSetWorkers(KEY, t.id, names, WHO());
+    };
+  });
+});
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeWpop(); });
 
 /* ---- タスクの小窓（ガントのバーをクリックで開く） ---- */
 function closeModal(){ const m=$('#tmodal'); if(m) m.remove(); }
@@ -1023,17 +1176,17 @@ function redrawKeepingOpen(){
  * サーバー側は「読んで→1ビット変えて→書く」ため、同じタスクへ同時に
  * 2つ送ると片方が消える。一覧入力で連打しても取りこぼさないための仕組み。
  */
-const saveQ = {};   // taskId -> {busy, next:[[ix,val],...]}
-function saveBit(id, ix, val){
+const saveQ = {};   // taskId -> {busy, next:[[ix,val,dateStr],...]}
+function saveBit(id, ix, val, dateStr){
   const q = saveQ[id] || (saveQ[id] = {busy:false, next:[]});
-  q.next.push([ix, val]);
+  q.next.push([ix, val, dateStr||'']);
   pumpSave_(id);
 }
 function pumpSave_(id){
   const q = saveQ[id];
   if(q.busy || !q.next.length) return;
   q.busy = true;
-  const [ix, val] = q.next.shift();
+  const [ix, val, dateStr] = q.next.shift();
   sub('保存中…');
   google.script.run
     .withSuccessHandler(r=>{
@@ -1058,7 +1211,7 @@ function pumpSave_(id){
       alert('保存できませんでした。通信状況を確認して、もう一度チェックしてください。\n\n'
             + (err && err.message ? err.message : err));
     })
-    .apiToggleItem(KEY, id, ix, val, WHO());
+    .apiToggleItem(KEY, id, ix, val, WHO(), dateStr);
 }
 
 /* ダッシュボード等の再描画は連打が落ち着いてからまとめて行う（サクサク入力のため） */
