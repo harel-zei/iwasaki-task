@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<base target="_top">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Harel 業務管理</title>
+<script>
+/* 端末に記憶した表示テーマを最初に適用する（未設定ならダーク） */
+try{var __t=localStorage.getItem('harel_theme');if(__t)document.documentElement.dataset.theme=__t;}catch(e){}
+</script>
+<style>
+:root{
+  color-scheme: light;
+  --surface-1:#fcfcfb; --plane:#f9f9f7;
+  --ink-1:#0b0b0b; --ink-2:#52514e; --ink-3:#898781;
+  --grid:#e1e0d9; --axis:#c3c2b7; --ring:rgba(11,11,11,0.10);
+  --series-1:#2a78d6; --series-2:#eb6834; --series-3:#1baf7a; --series-4:#eda100; --series-5:#e87ba4; --series-6:#008300; --series-7:#4a3aa7;
+  --good:#0ca30c; --warning:#fab219; --serious:#ec835a; --critical:#d03b3b;
+  --good-ink:#006300;
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --surface-1:#1a1a19; --plane:#0d0d0d;
+  --ink-1:#ffffff; --ink-2:#c3c2b7; --ink-3:#898781;
+  --grid:#2c2c2a; --axis:#383835; --ring:rgba(255,255,255,0.10);
+  --series-1:#3987e5; --series-2:#d95926; --series-3:#199e70; --series-4:#c98500; --series-5:#d55181; --series-6:#008300; --series-7:#9085e9;
+  --good-ink:#0ca30c;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--plane);color:var(--ink-1);
+  font-family:system-ui,-apple-system,"Segoe UI","Hiragino Sans","Noto Sans JP",sans-serif;font-size:13px;line-height:1.6}
+h1,h2,h3{margin:0;font-weight:700}
+button{font-family:inherit;font-size:inherit;cursor:pointer}
+
+/* ---------- header ---------- */
+header{position:sticky;top:0;z-index:30;background:var(--surface-1);border-bottom:1px solid var(--ring);
+  padding:10px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.brand{font-size:15px;font-weight:700;letter-spacing:.02em}
+.brand small{display:block;font-size:10px;font-weight:400;color:var(--ink-3);letter-spacing:.06em}
+nav{display:flex;gap:2px;margin-left:8px}
+nav button{background:transparent;border:0;padding:7px 14px;border-radius:7px;color:var(--ink-2);font-weight:600}
+nav button:hover{background:var(--plane)}
+nav button[aria-current="page"]{background:var(--series-1);color:#fff}
+.spacer{flex:1}
+.ghost{background:transparent;border:1px solid var(--ring);border-radius:7px;padding:6px 11px;color:var(--ink-2)}
+.ghost:hover{background:var(--plane)}
+main{padding:18px;max-width:1500px;margin:0 auto}
+.view{display:none}.view.on{display:block}
+
+/* ---------- cards ---------- */
+.card{background:var(--surface-1);border:1px solid var(--ring);border-radius:12px;padding:16px;margin-bottom:16px}
+.card>h2{font-size:13px;letter-spacing:.04em;color:var(--ink-2);margin-bottom:2px}
+.card>.sub{font-size:11px;color:var(--ink-3);margin-bottom:14px}
+
+/* ---------- stat tiles ---------- */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
+.tile{background:var(--surface-1);border:1px solid var(--ring);border-radius:12px;padding:14px 16px}
+.tile .lab{font-size:11px;color:var(--ink-2);display:flex;align-items:center;gap:6px}
+.tile .val{font-size:30px;font-weight:700;line-height:1.15;margin-top:4px}
+.tile .note{font-size:11px;color:var(--ink-3)}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
+
+/* ---------- bars ---------- */
+.progrow{display:grid;grid-template-columns:170px 1fr 82px;gap:10px;align-items:center;padding:3px 0}
+.progrow .nm{font-size:12px;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.track{height:14px;background:var(--grid);border-radius:4px;overflow:hidden;position:relative}
+.fill{height:100%;border-radius:4px}
+.progrow .pct{font-size:11px;color:var(--ink-2);text-align:right;font-variant-numeric:tabular-nums}
+
+/* ---------- tables ---------- */
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;font-size:11px;color:var(--ink-3);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--axis);white-space:nowrap}
+td{padding:7px 8px;border-bottom:1px solid var(--grid);vertical-align:middle}
+tbody tr:hover{background:var(--plane)}
+.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* ---------- badges ---------- */
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.b-crit{background:rgba(208,59,59,.14);color:var(--critical)}
+.b-warn{background:rgba(250,178,25,.20);color:#8a5b00}
+.b-good{background:rgba(12,163,12,.14);color:var(--good-ink)}
+.b-idle{background:var(--grid);color:var(--ink-2)}
+:root[data-theme="dark"] .b-warn{color:var(--warning)}
+.cat{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-2);white-space:nowrap}
+
+/* ---------- gantt ---------- */
+.gwrap{display:grid;grid-template-columns:290px 1fr;border:1px solid var(--ring);border-radius:10px;overflow:hidden;background:var(--surface-1)}
+.gleft{border-right:1px solid var(--axis);overflow:hidden}
+.gright{overflow-x:auto}
+.ghead{height:44px;border-bottom:1px solid var(--axis);position:relative;background:var(--surface-1)}
+.gleft .ghead{display:flex;align-items:flex-end;padding:0 12px 8px;font-size:11px;color:var(--ink-3)}
+.gmon{position:absolute;top:0;height:44px;border-left:1px solid var(--grid);font-size:10.5px;color:var(--ink-3);padding:6px 0 0 6px;white-space:nowrap}
+.grow{height:30px;border-bottom:1px solid var(--grid);position:relative}
+.gleft .grow{display:flex;align-items:center;gap:7px;padding:0 12px;font-size:11.5px;color:var(--ink-2);overflow:hidden}
+.gleft .grow span.t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gclient{height:28px;background:var(--plane);border-bottom:1px solid var(--axis);display:flex;align-items:center;padding:0 12px;
+  font-size:11.5px;font-weight:700;color:var(--ink-1);gap:8px;position:relative}
+.gbar{position:absolute;top:7px;height:16px;border-radius:4px;overflow:hidden;box-shadow:0 0 0 2px var(--surface-1)}
+.gbar .gp{height:100%;background:rgba(255,255,255,.55)}
+:root[data-theme="dark"] .gbar .gp{background:rgba(0,0,0,.42)}
+.gdue{position:absolute;top:4px;height:22px;width:2px;background:var(--critical);border-radius:1px}
+.gtoday{position:absolute;top:0;bottom:0;width:2px;background:var(--series-2);z-index:5;opacity:.85}
+.glabel{position:absolute;top:9px;font-size:10px;color:var(--ink-3);white-space:nowrap}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin:10px 2px 0;font-size:11px;color:var(--ink-2)}
+
+/* ---------- karte ---------- */
+.kgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px 22px}
+.kf{border-bottom:1px dotted var(--grid);padding:5px 0;display:flex;gap:10px;font-size:12px}
+.kf b{flex:none;width:118px;color:var(--ink-3);font-weight:600;font-size:11px}
+.kf span{color:var(--ink-1)}
+select,input[type=text]{font-family:inherit;font-size:12px;padding:5px 8px;border:1px solid var(--axis);
+  border-radius:6px;background:var(--surface-1);color:var(--ink-1)}
+
+/* ---------- task modal（ガントから開く小窓） ---------- */
+.mov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:90;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:var(--surface-1);border:1px solid var(--ring);border-radius:12px;width:min(680px,96vw);max-height:86vh;display:flex;flex-direction:column;box-shadow:0 18px 50px rgba(0,0,0,.35)}
+.mhead{display:flex;align-items:flex-start;gap:10px;padding:14px 16px;border-bottom:1px solid var(--ring)}
+.mhead .mt{font-weight:700;font-size:14px}
+.mhead .ms{font-size:11px;color:var(--ink-3);margin-top:3px}
+.mclose{margin-left:auto;background:none;border:1px solid var(--ring);border-radius:8px;color:var(--ink-2);cursor:pointer;font-size:14px;line-height:1;padding:6px 10px}
+.mbody{overflow-y:auto;padding:12px 16px}
+.mrow{display:flex;align-items:center;gap:9px;padding:7px 2px;border-bottom:1px dashed var(--ring);font-size:12.5px}
+.mrow .md{margin-left:auto;font-size:11px;color:var(--ink-3);white-space:nowrap}
+.mmemo{padding:12px 16px;border-top:1px solid var(--ring)}
+.mmemo textarea{width:100%;min-height:64px;background:var(--plane);color:var(--ink-1);border:1px solid var(--ring);border-radius:8px;padding:8px;font-size:12.5px;font-family:inherit;resize:vertical}
+.mmemo .mbar{display:flex;align-items:center;gap:10px;margin-top:8px}
+.mmemo button{background:var(--series-1);color:#fff;border:none;border-radius:8px;padding:7px 16px;cursor:pointer;font-size:12.5px}
+.mmemo .msg{font-size:11px;color:var(--ink-3)}
+
+/* ---------- 一覧入力（マトリクス） ---------- */
+.grid-wrap{overflow:auto;max-height:72vh;border:1px solid var(--ring);border-radius:10px;background:var(--surface-1)}
+.gridt{border-collapse:separate;border-spacing:0;font-size:12px}
+.gridt th.gh{writing-mode:vertical-rl;height:136px;padding:8px 3px;font-weight:600;font-size:10.5px;color:var(--ink-2);border-bottom:1px solid var(--ring);border-left:1px solid var(--ring);background:var(--plane);position:sticky;top:0;z-index:2;white-space:nowrap}
+.gridt th.gh div{max-height:124px;overflow:hidden}
+.gridt th.gh0{position:sticky;top:0;left:0;z-index:4;background:var(--plane);border-bottom:1px solid var(--ring);text-align:left;padding:6px 10px;writing-mode:horizontal-tb}
+.gridt td.gc{border-left:1px solid var(--ring);border-bottom:1px dashed var(--ring);text-align:center;padding:3px 5px;min-width:26px}
+.gridt td.gc.na{color:var(--ink-3);font-size:10px}
+.gridt td.gname{position:sticky;left:0;background:var(--surface-1);z-index:1;border-bottom:1px dashed var(--ring);padding:5px 10px;min-width:230px;max-width:270px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gridt td.gname .code{color:var(--ink-3);font-size:10.5px;margin-right:4px}
+.gridt td.gname .sub2{font-size:10px;color:var(--ink-3);margin-top:1px}
+.gridt input[type=checkbox]{width:15px;height:15px;cursor:pointer}
+.gridt input[type=checkbox]:focus{outline:2px solid var(--series-1);outline-offset:1px}
+
+/* ---------- task cards / checklist ---------- */
+.tcard{border:1px solid var(--ring);border-radius:10px;margin-bottom:9px;background:var(--surface-1);overflow:hidden}
+.thead{display:grid;grid-template-columns:12px 1fr 116px 96px 92px 74px 22px;gap:10px;align-items:center;
+  padding:10px 13px;cursor:pointer}
+.thead:hover{background:var(--plane)}
+.thead .tt{font-weight:700;font-size:12.5px}
+.thead .tm{font-size:10.5px;color:var(--ink-3);font-weight:400}
+.tbody{display:none;padding:2px 13px 12px 34px;border-top:1px solid var(--grid)}
+.tcard.open .tbody{display:block}
+.chk{display:flex;gap:9px;align-items:flex-start;padding:5px 0;border-bottom:1px dotted var(--grid);font-size:12px}
+.chk:last-child{border-bottom:0}
+.chk input{margin:3px 0 0;width:15px;height:15px;accent-color:var(--series-1);flex:none;cursor:pointer}
+.chk .ct{flex:1}
+.chk.done .ct{color:var(--ink-3);text-decoration:line-through}
+.chk .cd{font-size:10.5px;color:var(--ink-3);font-variant-numeric:tabular-nums;flex:none;width:52px;text-align:right}
+.chk .cond{font-size:10px;background:rgba(42,120,214,.12);color:var(--series-1);padding:1px 6px;border-radius:4px;margin-left:6px;white-space:nowrap}
+.chk .star{color:var(--critical);font-weight:700}
+.caret{color:var(--ink-3);font-size:11px}
+.tcard.open .caret{transform:rotate(90deg)}
+.caret{display:inline-block;transition:transform .12s}
+.hint{font-size:11px;color:var(--ink-3);background:var(--plane);border-left:3px solid var(--series-1);
+  padding:8px 12px;border-radius:0 6px 6px 0;margin-bottom:14px}
+.pill{font-size:10.5px;border:1px solid var(--axis);border-radius:999px;padding:2px 9px;color:var(--ink-2)}
+.tmplitem{font-size:12px;padding:4px 0 4px 18px;position:relative;border-bottom:1px dotted var(--grid)}
+.tmplitem:before{content:"□";position:absolute;left:0;color:var(--ink-3)}
+.newb{display:inline-block;font-size:9.5px;font-weight:700;background:var(--series-5);color:#fff;
+  border-radius:4px;padding:1px 5px;line-height:1.5;vertical-align:1px}
+.addb{display:inline-block;font-size:9.5px;font-weight:700;background:rgba(235,104,52,.16);color:#a83c10;
+  border-radius:4px;padding:1px 6px;margin-left:6px;white-space:nowrap}
+:root[data-theme="dark"] .addb{color:var(--series-2)}
+.warn{font-size:10px;font-weight:700;color:#8a5b00;background:rgba(250,178,25,.22);border-radius:4px;padding:1px 5px}
+:root[data-theme="dark"] .warn{color:var(--warning)}
+.tmplitem{padding-right:8px}
+/* ガントのフィルタバー */
+.fbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:11px 14px;margin-bottom:12px}
+.fbar .cnt{font-size:11px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.fbar .ghost{margin-left:auto}
+.seg{display:inline-flex;border:1px solid var(--axis);border-radius:8px;overflow:hidden}
+.seg button{background:var(--surface-1);border:0;padding:6px 15px;color:var(--ink-2);font-weight:700;font-size:12px}
+.seg button+button{border-left:1px solid var(--axis)}
+.seg button:hover{background:var(--plane)}
+.seg button[aria-current="true"]{background:var(--series-1);color:#fff}
+/* ガントの左カラム：折り返さない */
+.gwrap{grid-template-columns:370px 1fr}
+.gleft .grow,.gleft .gclient{flex-wrap:nowrap;white-space:nowrap;overflow:hidden;gap:6px}
+.gleft .grow>*,.gleft .gclient>*{flex:none}
+.gleft .grow .t,.gleft .gclient .nm{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.gleft .gclient .nm{font-weight:700}
+.stat{margin-left:auto;display:flex;align-items:center;gap:4px;font-size:10px;color:var(--ink-3);
+  font-variant-numeric:tabular-nums;flex:none!important}
+.stat b{font-weight:700;color:var(--ink-2)}
+.ct2{color:var(--ink-3);font-size:10px}
+.grow .pill,.gclient .pill{font-size:9.5px;padding:1px 6px}
+.badge{padding:1px 6px}
+.code{color:var(--ink-3);font-size:10px;font-variant-numeric:tabular-nums}
+.gfy{position:absolute;top:0;bottom:0;width:2px;background:var(--series-1);opacity:.42}
+@media print{
+  header,.fbar,.hint,nav,.legend{display:none!important}
+  body{background:#fff}
+  .gright{overflow:visible}
+  .gwrap{border:0}
+}
+</style>
+
+<script>
+/* google.script.run 互換の橋渡し（外部ホスティング用） */
+(function () {
+  var API = "https://script.google.com/macros/s/AKfycbwYGmhBmBQUf3zf1gBiOkmo-s9YdhWth6j55KQ9gy8Y6CLYwd3mt-MZz1fbkbf2QVh_/exec";
+  function make(ok, ng) {
+    var h = {
+      withSuccessHandler: function (f) { return make(f, ng); },
+      withFailureHandler: function (f) { return make(ok, f); }
+    };
+    ['apiBootstrap', 'apiToggleItem', 'apiSetMemo', 'apiCreateAdhoc'].forEach(function (fn) {
+      h[fn] = function () {
+        var args = Array.prototype.slice.call(arguments);
+        fetch(API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ fn: fn, args: args }),
+          redirect: 'follow'
+        }).then(function (r) { return r.json(); }).then(function (j) {
+          if (j && j.error) { (ng || console.error)({ message: j.error }); }
+          else { (ok || function () {})(j ? j.result : null); }
+        }).catch(function (e) {
+          (ng || console.error)({ message: '通信エラー: ' + e.message });
+        });
+      };
+    });
+    return h;
+  }
+  window.google = { script: { run: make(null, null) } };
+})();
+</script>
+</head>
+<body>
+<header>
+  <div class="brand">Harel 業務管理ダッシュボード<small id="brandsub">読み込み中…</small></div>
+  <nav>
+    <button data-v="dash" aria-current="page">ダッシュボード</button>
+    <button data-v="gantt">進捗（ガント）</button>
+    <button data-v="grid">一覧入力</button>
+    <button data-v="karte">顧問先カルテ</button>
+    <button data-v="tmpl">業務テンプレート</button>
+  </nav>
+  <div class="spacer"></div>
+  <select id="who" title="チェックやメモに記録される名前です"><option value="">記入者を選択</option></select>
+  <button class="ghost" id="theme">◐ 表示切替</button>
+  <button class="ghost" id="exp">JSON書出</button>
+</header>
+
+<main>
+  <section class="view on" id="v-dash"></section>
+  <section class="view" id="v-gantt"></section>
+  <section class="view" id="v-grid"></section>
+  <section class="view" id="v-karte"></section>
+  <section class="view" id="v-tmpl"></section>
+</main>
+
+<script>
+/* =========================================================================
+   1. マスタ定義  ── 既存管理表（0001〜0004）の実列から起こしたもの
+   ========================================================================= */
+const CAT = {
+  kessan : {label:'決算・申告', color:'var(--series-1)'},
+  nenji  : {label:'年次業務',   color:'var(--series-2)'},
+  getsuji: {label:'月次業務',   color:'var(--series-3)'},
+  nozei  : {label:'納税関連',   color:'var(--series-4)'},
+  tsudo  : {label:'都度・その他', color:'var(--series-5)'},
+  roumu  : {label:'労務・社会保険', color:'var(--series-6)'},
+  kanshi : {label:'期限監視',     color:'var(--series-7)'},
+};
+
+/* 納付方法 ── 既存管理表で実際に使われている表記を A〜K に正規化 */
+const PAY = {
+  A:'当社がダイレクト納付を登録・実行（ダイレクト）',
+  B:'当社が登録／先方が承認・実行',
+  C:'先方が自社のダイレクト納付で実行（先方ダイレクト）',
+  D:'当社がペイジー番号を発行して連絡（ペイジー）',
+  E:'当社が納付書を作成して郵送（レターパック）',
+  F:'当社が納付書を作成して訪問時に手渡し・持参',
+  G:'先方持参の納付書に当社が記入して返却',
+  H:'先方が納付書を手配（先方納付書・先方手配）',
+  I:'口座振替・振替納税',
+  J:'クレジットカード納付',
+  Z:'ゼロ納付（0円申告）',
+  K:'対象外・納税なし',
+};
+const TAXES = ['源泉所得税','住民税(特別徴収)','法人税','地方法人二税','消費税','償却資産税','予定納税'];
+
+const STAFF = ['税理士A','税理士B','担当d','担当g','担当a','担当h','担当i','担当c','担当f','担当j','担当e','担当b','担当k','担当l','外部提携先'];
+
+/* -------- 業務テンプレート --------
+   src   : 既存の管理表のどこから起こしたか（空＝現在どこにも管理表がない業務）
+   isNew : true = 今回あらたに管理下に入る業務
+   ★     : 飛ばすと事故になる項目
+*/
+/* ---- マスタはスプレッドシートから受け取る（apiBootstrap） ---- */
+let TEMPLATES = [];
+let CLIENTS   = [];
+const DAY = 86400000;
+const today = new Date(); today.setHours(0,0,0,0);
+const d2s = d => `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+const md  = d => `${d.getMonth()+1}/${d.getDate()}`;
+const add = (d,n) => new Date(d.getTime()+n*DAY);
+const eom = (y,m) => new Date(y, m, 0);
+const fyEnd = c => { let f=eom(today.getFullYear(), c.fiscalMonth); return f<today ? eom(today.getFullYear()+1, c.fiscalMonth) : f; };
+
+/* ---- タスクも GAS 側（Generator.gs）が生成したものを受け取る ---- */
+const state = {done:{}};
+let TASKS = [];
+const prog = t => t.items.length ? (state.done[t.id]?state.done[t.id].size:0)/t.items.length : 0;
+function status(t){
+  const p=prog(t);
+  if(p>=1) return 'done';
+  if(t.due<today) return 'late';
+  if(t.items.some((it,ix)=> it.date<today && !(state.done[t.id]&&state.done[t.id].has(ix)))) return 'risk';
+  if(t.start<=today) return 'wip';
+  return 'todo';
+}
+const ST={done:{l:'完了',c:'b-good'},late:{l:'期限超過',c:'b-crit'},risk:{l:'遅延あり',c:'b-warn'},
+          wip:{l:'進行中',c:'b-idle'},todo:{l:'未着手',c:'b-idle'}};
+
+/* =========================================================================
+   3. 描画
+   ========================================================================= */
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+
+/* ---- ダッシュボード ---- */
+function renderDash(){
+  const late=TASKS.filter(t=>status(t)==='late');
+  const risk=TASKS.filter(t=>status(t)==='risk');
+  const week=TASKS.filter(t=>status(t)!=='done' && t.due>=today && t.due<=add(today,7));
+  const newUn=TASKS.filter(t=>t.isNew && status(t)!=='done' && t.due>=add(today,-90) && t.due<=add(today,30));
+  const doneCnt=TASKS.filter(t=>status(t)==='done').length;
+
+  const tile=(lab,val,note,color)=>`<div class="tile">
+    <div class="lab">${color?`<i class="dot" style="background:${color}"></i>`:''}${lab}</div>
+    <div class="val" ${color?`style="color:${color}"`:''}>${val}</div><div class="note">${note}</div></div>`;
+
+  const byT={};
+  TASKS.filter(t=>t.start<=today).forEach(t=>{
+    (byT[t.tid] ||= {n:0,s:0,cat:t.cat,name:t.name,isNew:t.isNew}); byT[t.tid].n++; byT[t.tid].s+=prog(t);
+  });
+  const bars=Object.values(byT).sort((a,b)=>a.s/a.n-b.s/b.n).map(x=>{
+    const p=Math.round(x.s/x.n*100);
+    return `<div class="progrow"><div class="nm" title="${esc(x.name)}">${x.isNew?'<span class="newb">新</span> ':''}${esc(x.name)}</div>
+      <div class="track"><div class="fill" style="width:${p}%;background:${CAT[x.cat].color}"></div></div>
+      <div class="pct">${p}% <span style="color:var(--ink-3)">(${x.n})</span></div></div>`}).join('');
+
+  const rows = arr => arr.slice(0,16).map(t=>{
+    const st=status(t), p=Math.round(prog(t)*100);
+    const nxt=t.items.filter((it,ix)=>!(state.done[t.id]&&state.done[t.id].has(ix)))[0];
+    const dd=Math.round((t.due-today)/DAY);
+    return `<tr><td><span style="color:var(--ink-3);font-size:10.5px">${t.cid}</span> ${esc(t.cname)}</td>
+      <td><span class="cat"><i class="dot" style="background:${CAT[t.cat].color}"></i>${t.isNew?'<span class="newb">新</span> ':''}${esc(t.name)}</span>
+          <div style="font-size:10.5px;color:var(--ink-3)">${esc(t.period)}</div></td>
+      <td style="max-width:300px">${nxt?esc(nxt.t.replace(/^★ /,'')):'—'}</td>
+      <td class="num">${d2s(t.due)}</td>
+      <td class="num" style="color:${dd<0?'var(--critical)':dd<=3?'var(--serious)':'var(--ink-2)'}">${dd<0?`${-dd}日超過`:`残り${dd}日`}</td>
+      <td class="num">${p}%</td><td><span class="badge ${ST[st].c}">${ST[st].l}</span></td></tr>`}).join('');
+
+  $('#v-dash').innerHTML=`
+  <div class="hint">Driveフォルダの4桁コード（1101、2101 …）を顧問先の主キーに採用しています。<b>「新」バッジ</b>が付いた業務は、現在どの管理表にも存在せず、今回あらたに管理下に入るものです。</div>
+  <div class="tiles">
+    ${tile('期限超過', late.length, '期日を過ぎて未完了', 'var(--critical)')}
+    ${tile('遅延あり', risk.length, '個別項目が内部期限切れ', 'var(--warning)')}
+    ${tile('今週が期限', week.length, `${d2s(today)} 〜 ${d2s(add(today,7))}`, 'var(--serious)')}
+    ${tile('新規管理業務の未完了', newUn.length, '管理表が存在しなかった業務', 'var(--series-5)')}
+    ${tile('完了', doneCnt, `全 ${TASKS.length} 件中`, 'var(--good)')}
+  </div>
+  <div class="card"><h2>要対応（期限超過・遅延）</h2>
+    <div class="sub">期日を過ぎているもの、および個別のチェック項目が内部期限を過ぎているもの。</div>
+    <table><thead><tr><th>顧問先</th><th>業務</th><th>次にやること</th><th>期日</th><th>残日数</th><th>進捗</th><th>状態</th></tr></thead>
+    <tbody>${rows([...late,...risk])||'<tr><td colspan="7" style="color:var(--ink-3)">該当なし</td></tr>'}</tbody></table></div>
+  <div class="card"><h2>直近30日の期限</h2><div class="sub">先回りして着手すべきもの。</div>
+    <table><thead><tr><th>顧問先</th><th>業務</th><th>次にやること</th><th>期日</th><th>残日数</th><th>進捗</th><th>状態</th></tr></thead>
+    <tbody>${rows(TASKS.filter(t=>status(t)!=='done'&&t.due>=today&&t.due<=add(today,30)))}</tbody></table></div>
+  <div class="card"><h2>期限監視（判断の期限） ― 今後180日</h2>
+    <div class="sub">作業タスクではなく「この日までに要否を判断し、記録を残す」もの。今回あらたに管理下に入る区分です。判断の結果が「不要」でも、不要と判断した記録が残ることに意味があります。</div>
+    <table><thead><tr><th>顧問先</th><th>業務</th><th>次にやること</th><th>期日</th><th>残日数</th><th>進捗</th><th>状態</th></tr></thead>
+    <tbody>${rows(TASKS.filter(t=>t.cat==='kanshi'&&status(t)!=='done'&&t.due>=today&&t.due<=add(today,180)))
+      ||'<tr><td colspan="7" style="color:var(--ink-3)">該当なし</td></tr>'}</tbody></table></div>
+  <div class="card"><h2>業務別の平均進捗</h2>
+    <div class="sub">着手期間に入っている業務のみ。括弧内は対象件数。</div>${bars}</div>`;
+}
+
+/* ---- ガントチャート ---- */
+let CMAP = {};   /* apiBootstrap の受信後に組み立てる */
+const G = {mode:'task', tid:'all', staff:'all', st:'all', month:'all'};
+const PXD=3.0;
+
+function gPass(t){
+  const c=CMAP[t.cid];
+  if(!c) return false;
+  if(G.month!=='all' && c.fiscalMonth!==+G.month) return false;
+  if(G.staff!=='all' && c.staff!==G.staff && c.zeirishi!==G.staff && c.reviewer!==G.staff) return false;
+  const s=status(t);
+  if(G.st==='open' && s==='done') return false;
+  if(G.st==='late' && s!=='late' && s!=='risk') return false;
+  return true;
+}
+
+function renderGantt(){
+  const from=add(today,-60), to=add(today,300);
+  const W=Math.round((to-from)/DAY*PXD);
+  const x=d=>Math.round((d-from)/DAY*PXD);
+
+  let months='';
+  for(let d=new Date(from.getFullYear(),from.getMonth(),1); d<=to; d=new Date(d.getFullYear(),d.getMonth()+1,1)){
+    if(d<from) continue;
+    months+=`<div class="gmon" style="left:${x(d)}px;width:${Math.round(new Date(d.getFullYear(),d.getMonth()+1,0).getDate()*PXD)}px">${d.getFullYear()}年${d.getMonth()+1}月</div>`;
+  }
+
+  const inWin = t => t.due>=from && t.start<=to;
+  let pool = TASKS.filter(t=>inWin(t) && gPass(t));
+  if(G.tid!=='all') pool = pool.filter(t=>t.tid===G.tid);
+
+  const fyMarks = (c,label) => [today.getFullYear()-1,today.getFullYear(),today.getFullYear()+1].map(y=>{
+    const f=eom(y,c.fiscalMonth);
+    if(f<from||f>to) return '';
+    return `<div class="gfy" style="left:${x(f)}px"></div>` + (label
+      ? `<div class="glabel" style="left:${x(f)+6}px;top:5px;color:var(--series-1);font-weight:700">▲ 決算日 ${md(f)}</div>` : '');
+  }).join('');
+
+  const barsFor = list => {
+    let b='';
+    list.forEach(t=>{
+      const st=status(t), p=prog(t);
+      const x1=Math.max(x(t.start),0), x2=Math.max(x(t.due),x1+11);
+      const col= st==='late'?'var(--critical)':CAT[t.cat].color;
+      b+=`<div class="gbar" data-task="${esc(t.id)}" style="left:${x1}px;width:${x2-x1}px;background:${col};cursor:pointer"
+            title="${esc(t.cid)} ${esc(t.cname)}｜${esc(t.name)}｜${esc(t.period)}｜着手 ${d2s(t.start)}／期日 ${d2s(t.due)}｜進捗 ${Math.round(p*100)}%｜${ST[st].l}">
+            <div class="gp" style="margin-left:${Math.round(p*100)}%;width:${Math.round((1-p)*100)}%"></div></div>
+          <div class="gdue" style="left:${x(t.due)}px"></div>`;
+      if((x2-x1)>52) b+=`<div class="glabel" style="left:${x2+8}px">${esc(t.period)}・${Math.round(p*100)}%</div>`;
+    });
+    return b;
+  };
+
+  const stat = list => {
+    const late=list.filter(t=>status(t)==='late').length;
+    const risk=list.filter(t=>status(t)==='risk').length;
+    const p=Math.round(list.reduce((a,t)=>a+prog(t),0)/list.length*100);
+    return `<span class="stat">${late?`<span class="badge b-crit">超${late}</span>`:''}${risk?`<span class="badge b-warn">遅${risk}</span>`:''}<b>${p}%</b></span>`;
+  };
+
+  let L='', R='', nRow=0;
+
+  if(G.mode==='client'){
+    CLIENTS.forEach(c=>{
+      const ts=pool.filter(t=>t.cid===c.id); if(!ts.length) return;
+      L+=`<div class="gclient"><span class="code">${c.id}</span><span class="nm">${esc(c.name)}</span>
+          <span class="pill">${c.fiscalMonth}月${c.tentativeFiscal?'※':''}</span>
+          <span class="pill">${esc(c.staff)}</span>${stat(ts)}</div>`;
+      R+=`<div class="gclient">${fyMarks(c,true)}</div>`;
+      const by={}; ts.forEach(t=>{(by[t.tid] ||= []).push(t)});
+      TEMPLATES.filter(tp=>by[tp.id]).forEach(tp=>{
+        const list=by[tp.id]; nRow++;
+        L+=`<div class="grow"><i class="dot" style="background:${CAT[tp.cat].color}"></i>
+              ${tp.isNew?'<span class="newb">新</span>':''}<span class="t">${esc(tp.name)}</span>
+              <span class="ct2">${list.length}回</span>${stat(list)}</div>`;
+        R+=`<div class="grow">${barsFor(list)}</div>`;
+      });
+    });
+  } else {
+    TEMPLATES.forEach(tp=>{
+      const ts=pool.filter(t=>t.tid===tp.id); if(!ts.length) return;
+      const nC=new Set(ts.map(t=>t.cid)).size;
+      const per=ts.length/nC;
+      const anchor = tp.anchor==='fiscal' ? '決算日基準'
+        : tp.anchor==='calendar' ? '年1回（暦日）'
+        : tp.anchor==='adhoc' ? '都度'
+        : per>=10 ? '毎月' : per>=5 ? '隔月' : per>=1.6 ? '年2〜4回' : '年1回';
+      L+=`<div class="gclient"><i class="dot" style="background:${CAT[tp.cat].color}"></i>
+          ${tp.isNew?'<span class="newb">新</span>':''}<span class="nm">${esc(tp.name)}</span>
+          <span class="pill">${anchor}</span><span class="pill">${nC}社</span>${stat(ts)}</div>`;
+      R+=`<div class="gclient"></div>`;
+      const by={}; ts.forEach(t=>{(by[t.cid] ||= []).push(t)});
+      let ids=Object.keys(by);
+      // 決算日基準の業務は決算日順、それ以外は最も近い期日順に並べる
+      ids.sort((a,b)=> tp.anchor==='fiscal'
+        ? (CMAP[a].fiscalMonth-CMAP[b].fiscalMonth) || a.localeCompare(b)
+        : (Math.min(...by[a].map(t=>+t.due)) - Math.min(...by[b].map(t=>+t.due))) || a.localeCompare(b));
+      ids.forEach(cid=>{
+        const c=CMAP[cid], list=by[cid]; nRow++;
+        L+=`<div class="grow"><span class="code">${cid}</span><span class="t">${esc(c.name)}</span>
+              ${tp.anchor==='fiscal'?`<span class="pill">${c.fiscalMonth}月</span>`:''}
+              <span class="ct2">${esc(c.staff)}</span>${stat(list)}</div>`;
+        R+=`<div class="grow">${tp.anchor==='fiscal'?fyMarks(c,false):''}${barsFor(list)}</div>`;
+      });
+    });
+  }
+
+  if(!nRow){ L='<div class="grow" style="color:var(--ink-3)">該当する業務がありません</div>'; R='<div class="grow"></div>'; }
+
+  const tplOpts = ['<option value="all">すべての業務</option>']
+    .concat(TEMPLATES.map(t=>`<option value="${t.id}" ${G.tid===t.id?'selected':''}>${esc(t.name)}（${CLIENTS.filter(c=>c.svc.includes(t.id)).length}社）</option>`)).join('');
+  const staffOpts = ['<option value="all">担当：すべて</option>']
+    .concat([...new Set(CLIENTS.flatMap(c=>[c.staff,c.zeirishi,c.reviewer]))].sort()
+      .map(s=>`<option value="${esc(s)}" ${G.staff===s?'selected':''}>${esc(s)}</option>`)).join('');
+
+  $('#v-gantt').innerHTML=`
+  <div class="card fbar">
+    <div class="seg">
+      <button data-m="task" ${G.mode==='task'?'aria-current="true"':''}>業務別</button>
+      <button data-m="client" ${G.mode==='client'?'aria-current="true"':''}>顧問先別</button>
+    </div>
+    <select id="ftid">${tplOpts}</select>
+    <select id="fmonth">
+      <option value="all" ${G.month==='all'?'selected':''}>決算月：すべて</option>
+      ${Array.from({length:12},(_,i)=>i+1).map(m=>{
+        const n=CLIENTS.filter(c=>c.fiscalMonth===m && c.state==='稼働').length;
+        return `<option value="${m}" ${G.month==String(m)?'selected':''}>${m}月決算（${n}社）</option>`;
+      }).join('')}
+    </select>
+    <select id="fstaff">${staffOpts}</select>
+    <select id="fst">
+      <option value="all" ${G.st==='all'?'selected':''}>状態：すべて</option>
+      <option value="open" ${G.st==='open'?'selected':''}>未完了のみ</option>
+      <option value="late" ${G.st==='late'?'selected':''}>期限超過・遅延のみ</option>
+    </select>
+    <span class="cnt">${pool.length} 件 ／ ${nRow} 行</span>
+    <button class="ghost" id="gprint">印刷・PDF</button>
+  </div>
+  <div class="hint">「業務別」は 決算申告・確定申告・納期の特例 … といった業務ごとのガントです。決算日基準の業務は<b>決算月の早い順</b>、それ以外は<b>直近の期日順</b>に顧問先が並びます。▲が決算日、赤い縦線が期日、オレンジの縦線が本日。</div>
+  <div class="gwrap">
+    <div class="gleft"><div class="ghead">${G.mode==='task'?'業務 ／ 顧問先':'顧問先 ／ 業務'}</div>${L}</div>
+    <div class="gright"><div style="width:${W}px;position:relative">
+      <div class="ghead">${months}</div><div class="gtoday" style="left:${x(today)}px"></div>${R}</div></div></div>
+  <div class="legend">${Object.values(CAT).map(c=>`<span class="cat"><i class="dot" style="background:${c.color}"></i>${c.label}</span>`).join('')}
+    <span class="cat"><i style="display:inline-block;width:2px;height:11px;background:var(--critical)"></i>期日</span>
+    <span class="cat"><i style="display:inline-block;width:2px;height:11px;background:var(--series-2)"></i>本日</span>
+    <span class="cat"><span class="newb">新</span> 新規に管理下に入る業務</span>
+    <span class="cat" style="color:var(--critical)">バーが赤 = 期限超過</span></div>`;
+
+  document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{G.mode=b.dataset.m;renderGantt()});
+  $('#ftid').onchange   = e=>{G.tid=e.target.value;renderGantt()};
+  $('#fmonth').onchange = e=>{G.month=e.target.value;renderGantt()};
+  $('#fstaff').onchange = e=>{G.staff=e.target.value;renderGantt()};
+  $('#fst').onchange    = e=>{G.st=e.target.value;renderGantt()};
+  $('#gprint').onclick  = ()=>window.print();
+}
+
+/* ---- 顧問先カルテ ---- */
+let curClient=null;   /* apiBootstrap の受信後に先頭の顧問先を入れる */
+function renderKarte(){
+  const c=CLIENTS.find(x=>x.id===curClient);
+  const fy=fyEnd(c);
+  const tent = k => (c.tentative||[]).includes(k) ? ' <span class="warn">※仮</span>' : '';
+  const f=(k,v,t)=>`<div class="kf"><b>${k}</b><span>${esc(v)}${t||''}</span></div>`;
+  const RANK={late:0,risk:1,wip:2,todo:3,done:4};
+  const ts=TASKS.filter(t=>t.cid===c.id).filter(t=>t.due>=add(today,-120)&&t.start<=add(today,220))
+    .sort((a,b)=>(RANK[status(a)]-RANK[status(b)])||(a.due-b.due));
+
+  const cards=ts.map(t=>{
+    const st=status(t), p=Math.round(prog(t)*100);
+    const dset=state.done[t.id]||new Set();
+    const items=t.items.map((it,ix)=>{
+      const dn=dset.has(ix), over=!dn&&it.date<today;
+      return `<label class="chk ${dn?'done':''}">
+        <input type="checkbox" data-t="${t.id}" data-i="${ix}" ${dn?'checked':''}>
+        <span class="ct">${it.star?'<span class="star">★</span> ':''}${esc(it.t.replace(/^★ /,''))}
+          ${it.cond?`<span class="cond">${esc(it.cond)}</span>`:''}
+          ${it.add?'<span class="addb">追加</span>':''}</span>
+        <span class="cd" style="${over?'color:var(--critical);font-weight:700':''}">${md(it.date)}</span></label>`}).join('');
+    return `<div class="tcard" data-tc="${t.id}">
+      <div class="thead"><i class="dot" style="background:${CAT[t.cat].color}"></i>
+        <div><div class="tt">${t.isNew?'<span class="newb">新</span> ':''}${esc(t.name)}</div>
+             <div class="tm">${esc(t.period)}｜${esc(CAT[t.cat].label)}</div></div>
+        <div class="num" style="font-size:11px;color:var(--ink-2)">期日 ${d2s(t.due)}</div>
+        <div class="track"><div class="fill" style="width:${p}%;background:${CAT[t.cat].color}"></div></div>
+        <div class="num" style="font-size:11px">${dset.size}/${t.items.length} 項目</div>
+        <div><span class="badge ${ST[st].c}">${ST[st].l}</span></div><div class="caret">▶</div></div>
+      <div class="tbody">
+        <div class="hint" style="margin:10px 0 8px">${esc(t.memo)}
+          <div style="margin-top:4px;color:var(--ink-3)">出所：${t.src?esc(t.src):'<b>現在どこにも管理表がありません（新規）</b>'}</div></div>
+        ${items}</div></div>`}).join('');
+
+  $('#v-karte').innerHTML=`
+  <div class="card" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <b style="font-size:12px;color:var(--ink-2)">顧問先</b>
+    <select id="csel">${CLIENTS.map(x=>`<option value="${x.id}" ${x.id===c.id?'selected':''}>${x.id}　${esc(x.name)}</option>`).join('')}</select>
+    <span class="pill">${c.kind}</span>
+    <span class="pill">${c.fiscalMonth}月決算${c.tentativeFiscal?'※仮':''}（当期末 ${d2s(fy)}）</span>
+    <span class="pill">税理士 ${esc(c.zeirishi)}／作成 ${esc(c.staff)}／確認 ${esc(c.reviewer)}</span>
+    ${c.extend?'<span class="pill" style="border-color:var(--series-1);color:var(--series-1)">申告期限延長あり</span>':''}
+    ${c.group?`<span class="pill">${esc(c.group)}</span>`:''}</div>
+
+  <div class="card"><h2>カルテ（基本情報）</h2>
+    <div class="sub">Driveフォルダの4桁コードを主キーに採用。<span class="warn">※仮</span> は既存管理表から読み取れず、仮置きしている項目です。</div>
+    <div class="kgrid">
+      ${f('顧問先コード',c.id)}${f('法人／個人',c.kind)}${f('業種',c.industry)}
+      ${f('担当税理士',c.zeirishi)}${f('作成担当',c.staff)}${f('確認者',c.reviewer)}
+      ${f('連絡方法',c.channel)}${f('使用ソフト',c.soft)}${f('状態',c.state)}
+      ${f('源泉 納期の特例',c.nokiTokurei?'有（7/10・1/20）':'無（毎月10日）')}
+      ${f('住民税 特別徴収',c.jumin?(c.juminTokurei?'有・納期の特例あり（6/10・12/10）':'有・毎月10日'):'無', tent('住民税の条件'))}
+      ${f('給与計算',c.payroll, tent('給与計算'))}
+      ${f('予定納税',c.yotei)}${f('事前確定届出給与',c.jizen?'有':'無')}
+      ${f('事業所税',c.jigyosho?'有':'無')}${f('書面添付',c.shomen?'有':'無')}
+      ${f('お控えの製本',c.bind)}${f('お控え郵送先',c.sendTo)}
+    </div>
+    <div class="hint" style="margin-top:14px">${esc(c.memo)}</div>
+    <div class="hint" style="margin-top:8px;border-left-color:var(--warning)">
+      <b>未調査の項目：</b>償却資産の申告先市区町村／給与の締日・支給日／訪問頻度／ダイレクト納付の利用届出の提出状況／労働保険・社保を自社でやるか社労士か。
+      いずれも既存の管理表に列が存在しないため、移行時に新規調査が必要です。</div>
+  </div>
+
+  <div class="card"><h2>税目別の納付方法</h2>
+    <div class="sub">既存管理表の「ダイレクト／先方ダイレクト／ペイジー／納付書／持参／手渡／先方手配／振替納税／クレカ／ゼロ納付」を A〜K に正規化したものです。ここの設定で下のチェックリストの項目が切り替わります。</div>
+    <table><thead><tr><th style="width:150px">税目</th><th style="width:44px">区分</th><th>運用</th></tr></thead><tbody>
+    ${TAXES.map(tx=>{const k=c.pay[tx]||'K';
+      return `<tr><td>${tx}</td><td><b style="color:${k==='K'?'var(--ink-3)':'var(--series-1)'}">${k}</b></td>
+      <td style="color:${k==='K'?'var(--ink-3)':'var(--ink-1)'}">${PAY[k]}</td></tr>`}).join('')}</tbody></table></div>
+
+  <div class="card"><h2>業務チェックリスト</h2>
+    <div class="sub">行をクリックすると項目が開きます。★＝飛ばすと事故になる項目、<span class="addb">追加</span>＝既存の管理表に無かった項目、<span class="newb">新</span>＝業務ごと新規です。右端は各項目の社内目標日。</div>
+    ${cards}</div>`;
+  $('#csel').onchange=e=>{curClient=e.target.value;renderKarte()};
+}
+
+/* ---- 業務テンプレート ---- */
+function renderTmpl(){
+  const nNew=TEMPLATES.filter(t=>t.isNew).length;
+  $('#v-tmpl').innerHTML=`
+  <div class="hint">全 ${TEMPLATES.length} 業務。うち <b>${TEMPLATES.length-nNew} 業務は既存の管理表の列をそのまま項目化</b>したもの、<b>${nNew} 業務が新規</b>です。<span class="addb">追加</span> は既存の列に無かった項目で、そのほとんどが「納付完了の確認」と「提出先の全件確認」です。</div>
+  ${TEMPLATES.map(t=>{
+    const anchor={fiscal:'決算日を基準に自動展開',calendar:'暦の固定日',monthly:'毎月／隔月（期限を基準）',adhoc:'都度発生'}[t.anchor];
+    const n=CLIENTS.filter(c=>c.svc.includes(t.id)).length;
+    return `<div class="card">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">
+        <i class="dot" style="background:${CAT[t.cat].color}"></i>
+        ${t.isNew?'<span class="newb">新</span>':''}<h3 style="font-size:14px">${esc(t.name)}</h3>
+        <span class="pill">${CAT[t.cat].label}</span><span class="pill">${anchor}</span>
+        <span class="pill">${t.items.length} 項目</span><span class="pill">対象 ${n} 社</span></div>
+      <div class="sub" style="margin-bottom:4px">出所：${t.src?esc(t.src):'<b style="color:var(--series-5)">現在どこにも管理表がありません</b>'}</div>
+      <div class="sub" style="margin-bottom:10px">${esc(t.memo)}</div>
+      ${t.items.map(it=>`<div class="tmplitem">${it.star?'<span class="star">★</span> ':''}${esc(it.t.replace(/^★ /,''))}
+        ${it.when?`<span class="cond">納付方法 ${it.when.join('/')}</span>`:''}
+        ${it.flag?`<span class="cond">${it.flag==='jigyosho'?'事業所税あり':'書面添付あり'}の先のみ</span>`:''}
+        ${it.add?'<span class="addb">追加</span>':''}</div>`).join('')}
+    </div>`}).join('')}`;
+}
+
+/* ---- 一覧入力（行=顧問先 × 列=工程 のマトリクス） ---- */
+const GR={tid:'houjin', month:'all', staff:'all', period:'nearest'};
+
+function renderGrid(){
+  const tpl=TMAP[GR.tid];
+  if(!tpl){ $('#v-grid').innerHTML='<div class="card"><h2>業務がありません</h2></div>'; return; }
+
+  let pool=TASKS.filter(t=>t.tid===GR.tid);
+  if(GR.month!=='all') pool=pool.filter(t=>(CMAP[t.cid]||{}).fiscalMonth===+GR.month);
+  if(GR.staff!=='all') pool=pool.filter(t=>{const c=CMAP[t.cid]||{};return c.staff===GR.staff||c.zeirishi===GR.staff||c.reviewer===GR.staff;});
+
+  /* 期の選択肢（源泉毎月のような共有の期を持つ業務用）。直近＝顧問先ごとに一番近い期 */
+  const periods=[...new Map(pool.map(t=>[t.period, t.due])).entries()].sort((a,b)=>a[1]-b[1]);
+  let rows;
+  if(GR.period==='nearest'){
+    const byC={};
+    pool.forEach(t=>{
+      const cur=byC[t.cid];
+      const better = !cur
+        || (t.due>=today && (cur.due<today || t.due<cur.due))   // 未来なら一番近いもの
+        || (t.due<today && cur.due<today && t.due>cur.due);     // 全部過去なら一番新しいもの
+      if(better) byC[t.cid]=t;
+    });
+    rows=Object.values(byC);
+  } else {
+    rows=pool.filter(t=>t.period===GR.period);
+  }
+  rows.sort((a,b)=> (CMAP[a.cid]||{}).fiscalMonth-(CMAP[b.cid]||{}).fiscalMonth || (a.due-b.due) || (a.cid<b.cid?-1:1));
+
+  const tplOpts=TEMPLATES.map(t=>`<option value="${t.id}" ${GR.tid===t.id?'selected':''}>${esc(t.name)}</option>`).join('');
+  const perOpts=`<option value="nearest" ${GR.period==='nearest'?'selected':''}>期：直近</option>`
+    + periods.map(([p])=>`<option value="${esc(p)}" ${GR.period===p?'selected':''}>${esc(p)}</option>`).join('');
+  const monOpts=`<option value="all" ${GR.month==='all'?'selected':''}>決算月：すべて</option>`
+    + Array.from({length:12},(_,i)=>i+1).map(m=>`<option value="${m}" ${GR.month==String(m)?'selected':''}>${m}月決算</option>`).join('');
+  const staffOpts=`<option value="all" ${GR.staff==='all'?'selected':''}>担当：すべて</option>`
+    + [...new Set(CLIENTS.flatMap(c=>[c.staff,c.zeirishi,c.reviewer]))].filter(Boolean).sort()
+      .map(s=>`<option value="${esc(s)}" ${GR.staff===s?'selected':''}>${esc(s)}</option>`).join('');
+
+  const head=tpl.items.map((it,ti)=>`<th class="gh" title="${esc(it.t)}"><div>${esc(it.t.replace(/^★ /,''))}</div></th>`).join('');
+  const body=rows.map((t,r)=>{
+    const c=CMAP[t.cid]||{};
+    const done=state.done[t.id]||new Set();
+    const st=ST[status(t)];
+    const cells=tpl.items.map((it,ti)=>{
+      const pos=t.items.findIndex(x=>x.i===ti);
+      if(pos<0) return `<td class="gc na">―</td>`;
+      const dt=t.items[pos].date;
+      return `<td class="gc"><input type="checkbox" data-t="${esc(t.id)}" data-i="${pos}" data-r="${r}" data-c="${ti}"
+        ${done.has(pos)?'checked':''} title="${esc(it.t)}｜社内目標 ${md(dt)}"></td>`;
+    }).join('');
+    return `<tr>
+      <td class="gname" data-task="${esc(t.id)}" title="クリックで小窓（メモ入力）">
+        <span class="code">${esc(t.cid)}</span> ${esc(c.name||t.cid)}
+        <div class="sub2">${esc(t.period)}｜${md(t.due)}締切｜<span class="badge ${st.c}">${st.l}</span>${t.note?'｜📝':''}</div>
+      </td>${cells}</tr>`;
+  }).join('');
+
+  $('#v-grid').innerHTML=`
+  <div class="card fbar">
+    <select id="gr_tid">${tplOpts}</select>
+    <select id="gr_per">${perOpts}</select>
+    <select id="gr_mon">${monOpts}</select>
+    <select id="gr_staff">${staffOpts}</select>
+    <span class="cnt">${rows.length} 社（行）</span>
+  </div>
+  <div class="hint">旧管理表と同じ「行=顧問先 × 列=工程」です。セルをクリックでチェック（自動保存）。矢印キーで移動、Enter でチェックして下の行へ。顧問先名をクリックすると小窓が開き、メモを書けます。「―」はその顧問先には出ない工程（納付方法などの条件）です。</div>
+  <div class="grid-wrap"><table class="gridt">
+    <thead><tr><th class="gname gh0">顧問先</th>${head}</tr></thead>
+    <tbody>${body}</tbody>
+  </table></div>`;
+
+  $('#gr_tid').onchange  =e=>{GR.tid=e.target.value; GR.period='nearest'; renderGrid();};
+  $('#gr_per').onchange  =e=>{GR.period=e.target.value; renderGrid();};
+  $('#gr_mon').onchange  =e=>{GR.month=e.target.value; renderGrid();};
+  $('#gr_staff').onchange=e=>{GR.staff=e.target.value; renderGrid();};
+}
+
+/* マトリクス内のキーボード操作（矢印移動・Enterでチェックして下へ） */
+document.addEventListener('keydown',e=>{
+  const el=document.activeElement;
+  if(!el || el.tagName!=='INPUT' || el.dataset.r===undefined || !el.closest('.gridt')) return;
+  const r=+el.dataset.r, c=+el.dataset.c;
+  const go=(nr,nc)=>{
+    const nx=document.querySelector(`.gridt input[data-r="${nr}"][data-c="${nc}"]`);
+    if(nx){ nx.focus(); nx.scrollIntoView({block:'nearest',inline:'nearest'}); }
+  };
+  if(e.key==='ArrowRight'){ e.preventDefault(); for(let i=c+1;i<c+60;i++){ if(document.querySelector(`.gridt input[data-r="${r}"][data-c="${i}"]`)) return go(r,i);} }
+  if(e.key==='ArrowLeft'){ e.preventDefault(); for(let i=c-1;i>=0;i--){ if(document.querySelector(`.gridt input[data-r="${r}"][data-c="${i}"]`)) return go(r,i);} }
+  if(e.key==='ArrowDown'){ e.preventDefault(); go(r+1,c); }
+  if(e.key==='ArrowUp'){ e.preventDefault(); go(r-1,c); }
+  if(e.key==='Enter'){ e.preventDefault(); el.click(); go(r+1,c); }
+});
+
+/* ---- タスクの小窓（ガントのバーをクリックで開く） ---- */
+function closeModal(){ const m=$('#tmodal'); if(m) m.remove(); }
+
+function openTaskModal(taskId){
+  closeModal();
+  const t=TASKS.find(x=>x.id===taskId);
+  if(!t) return;
+  const c=CMAP[t.cid]||{};
+  const st=ST[status(t)], p=Math.round(prog(t)*100);
+  const done=state.done[t.id]||new Set();
+  const rows=t.items.map((it,ix)=>`
+    <label class="mrow">
+      <input type="checkbox" data-t="${esc(t.id)}" data-i="${ix}" ${done.has(ix)?'checked':''}>
+      <span>${it.star?'<span class="star">★</span> ':''}${esc(it.t.replace(/^★ /,''))}</span>
+      ${it.cond?`<span class="cond">${esc(it.cond)}</span>`:''}
+      ${it.add?'<span class="addb">追加</span>':''}
+      <span class="md">${md(it.date)}</span>
+    </label>`).join('');
+  const ov=document.createElement('div');
+  ov.className='mov'; ov.id='tmodal';
+  ov.innerHTML=`
+    <div class="modal">
+      <div class="mhead">
+        <div>
+          <div class="mt">${esc(t.cid)} ${esc(t.cname)}｜${esc(t.name)}</div>
+          <div class="ms">${esc(t.period)}｜着手 ${d2s(t.start)}／期日 ${d2s(t.due)}｜進捗 <b id="mprog">${p}%</b>｜<span class="badge ${st.c}">${st.l}</span></div>
+        </div>
+        <button class="mclose" id="mclose">✕ 閉じる</button>
+      </div>
+      <div class="mbody">${rows||'<div class="sub">チェック項目はありません</div>'}</div>
+      <div class="mmemo">
+        <textarea id="mnote" placeholder="メモ（例：5/19 資料一部未着、6月に再依頼）">${esc(t.note||'')}</textarea>
+        <div class="mbar">
+          <button id="msave">メモを保存</button>
+          <span class="msg" id="mmsg"></span>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{ if(e.target===ov) closeModal(); });
+  $('#mclose').onclick=closeModal;
+  $('#msave').onclick=()=>{
+    const v=$('#mnote').value;
+    $('#mmsg').textContent='保存中…';
+    google.script.run
+      .withSuccessHandler(saved=>{ t.note=saved; $('#mmsg').textContent='保存しました'; })
+      .withFailureHandler(err=>{ $('#mmsg').textContent='⚠ 保存できませんでした: '+(err&&err.message||err); })
+      .apiSetMemo(KEY, t.id, v, WHO());
+  };
+}
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
+document.addEventListener('click',e=>{
+  const bar=e.target.closest('.gbar[data-task], .gname[data-task]');
+  if(bar) openTaskModal(bar.dataset.task);
+});
+
+/* ---- イベント ---- */
+document.addEventListener('change',e=>{
+  const cb=e.target.closest('input[type=checkbox][data-t]'); if(!cb) return;
+  const id=cb.dataset.t, ix=+cb.dataset.i, val=cb.checked;
+  (state.done[id] ||= new Set());
+  val ? state.done[id].add(ix) : state.done[id].delete(ix);
+  scheduleRedraw();              /* 連打が落ち着いてからダッシュボード等を描き直す */
+  const mp=$('#mprog');          /* 小窓が開いていれば進捗率も更新 */
+  if(mp){ const t=TASKS.find(x=>x.id===id); if(t) mp.textContent=Math.round(prog(t)*100)+'%'; }
+  saveBit(id, ix, val);          /* スプレッドシートへ保存 */
+});
+document.addEventListener('click',e=>{
+  const h=e.target.closest('.thead');
+  if(h && !e.target.closest('input')) h.parentElement.classList.toggle('open');
+});
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.removeAttribute('aria-current'));
+  b.setAttribute('aria-current','page');
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+  $('#v-'+b.dataset.v).classList.add('on');
+  if(b.dataset.v==='gantt') renderGantt();
+  if(b.dataset.v==='grid') renderGrid();
+});
+$('#theme').onclick=()=>{
+  const r=document.documentElement;
+  r.dataset.theme = r.dataset.theme==='dark'?'light':'dark';
+  try{localStorage.setItem('harel_theme', r.dataset.theme);}catch(e){}
+  renderDash(); renderKarte(); renderGantt(); renderTmpl();
+};
+$('#exp').onclick=()=>{
+  const data={exportedAt:new Date().toISOString(), clients:CLIENTS, templates:TEMPLATES,
+    progress:Object.fromEntries(Object.entries(state.done).map(([k,v])=>[k,[...v]]))};
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+  a.download='harel_tasks.json'; a.click();
+};
+
+/* =========================================================================
+   4. データ受信（スプレッドシート ← Repo.gs ← apiBootstrap）
+
+   プロトタイプはマスタもタスクも JS 定数で持っていたが、ここでは
+   すべて GAS 側から受け取る。描画関数（上の 3.）には手を入れず、
+   受け取ったデータをプロトタイプと同じ形に直してから渡している。
+   ========================================================================= */
+
+let READY = false;
+
+/* データが届くまでは描画しない（nav や表示切替を先に押されても落ちないように） */
+['renderDash','renderKarte','renderGantt','renderTmpl','renderGrid'].forEach(name=>{
+  const orig = window[name];
+  window[name] = function(){ if(!READY) return; return orig.apply(this, arguments); };
+});
+
+const sub = msg => { const el=$('#brandsub'); if(el) el.textContent = msg; };
+
+/**
+ * チェック項目を画面側で展開する（プロトタイプの itemsFor と同じ仕事）。
+ * サーバーは項目を送らない。230社分を展開して送ると数十MBになるため。
+ */
+function itemsForClient(tpl, client, base){
+  const out=[];
+  (tpl.items||[]).forEach((it,i)=>{
+    if(it.flag && !client[it.flag]) return;
+    if(it.when && !it.when.includes((client.pay||{})[it.tax || '源泉所得税'])) return;
+    let d;
+    if(tpl.anchor==='calendar'){
+      if(!it.off || typeof it.off!=='object' || !tpl.due || !tpl.start) return;
+      d = new Date(base.getFullYear(), it.off.m-1, it.off.d);
+      if(tpl.due.m < tpl.start.m && it.off.m > tpl.due.m) d = new Date(base.getFullYear()-1, it.off.m-1, it.off.d);
+    } else {
+      d = add(base, it.off);
+    }
+    if(!(d instanceof Date) || isNaN(d.getTime())) return;
+    out.push({i, t:it.t, star:!!it.star, add:!!it.add, when:it.when, flag:it.flag, date:d,
+      cond: it.when ? `納付方法 ${it.when.join('/')}` : (it.flag ? '対象の顧問先のみ' : null)});
+  });
+  return out.sort((a,b)=>a.date-b.date);
+}
+
+/**
+ * サーバーの最小タスク（id/cid/tid/period/start/due/bits）を、
+ * 描画関数が期待する形に組み立てる。業務名・顧問先名・チェック項目は
+ * TMAP / CMAP から補う。
+ */
+function adaptTask(t){
+  const tpl = TMAP[t.tid] || {};
+  const c   = CMAP[t.cid] || {};
+  const due = new Date(t.due+'T00:00:00');
+  return {
+    id:t.id, cid:t.cid, cname:c.name||t.cid, tid:t.tid,
+    name:tpl.name||t.tid, cat:tpl.cat||'', isNew:!!tpl.isNew,
+    period:t.period, start:new Date(t.start+'T00:00:00'), due:due,
+    memo:tpl.memo||'', src:tpl.src||'', bits:t.bits||'',
+    note:t.note||'',
+    items: itemsForClient(tpl, c, due)
+  };
+}
+
+/** ビット列（'11010…'）を、描画側が使う完了インデックスの集合に展開する */
+function applyBits(t){
+  const set=new Set();
+  String(t.bits||'').split('').forEach((c,i)=>{ if(c==='1') set.add(i); });
+  if(set.size) state.done[t.id]=set; else delete state.done[t.id];
+}
+
+/** 開いているチェックリストを閉じずに描き直す */
+function redrawKeepingOpen(){
+  const open=[...document.querySelectorAll('.tcard.open')].map(x=>x.dataset.tc);
+  renderKarte(); renderDash();
+  open.forEach(k=>{const el=document.querySelector(`[data-tc="${k}"]`); if(el) el.classList.add('open')});
+}
+
+/**
+ * チェックの ON/OFF をスプレッドシートに保存する。
+ * 保存に失敗したら画面を元に戻す。見た目だけ完了になると、
+ * このシステムが防ごうとしている抜け漏れをシステム自身が作ってしまうため。
+ */
+/*
+ * 保存はタスクごとに直列化する。
+ * サーバー側は「読んで→1ビット変えて→書く」ため、同じタスクへ同時に
+ * 2つ送ると片方が消える。一覧入力で連打しても取りこぼさないための仕組み。
+ */
+const saveQ = {};   // taskId -> {busy, next:[[ix,val],...]}
+function saveBit(id, ix, val){
+  const q = saveQ[id] || (saveQ[id] = {busy:false, next:[]});
+  q.next.push([ix, val]);
+  pumpSave_(id);
+}
+function pumpSave_(id){
+  const q = saveQ[id];
+  if(q.busy || !q.next.length) return;
+  q.busy = true;
+  const [ix, val] = q.next.shift();
+  sub('保存中…');
+  google.script.run
+    .withSuccessHandler(bits=>{
+      const t=TASKS.find(x=>x.id===id);
+      if(t){
+        t.bits=bits;
+        if(!q.next.length) applyBits(t);   // 送信待ちが残っている間は画面の状態を優先
+      }
+      q.busy=false;
+      if(!q.next.length && Object.values(saveQ).every(x=>!x.busy && !x.next.length)) sub(SUBTITLE);
+      pumpSave_(id);
+    })
+    .withFailureHandler(err=>{
+      q.next.length=0; q.busy=false;
+      const t=TASKS.find(x=>x.id===id);
+      if(t) applyBits(t);                 // サーバの値に戻す
+      redrawKeepingOpen();
+      sub('⚠ 保存できませんでした');
+      alert('保存できませんでした。通信状況を確認して、もう一度チェックしてください。\n\n'
+            + (err && err.message ? err.message : err));
+    })
+    .apiToggleItem(KEY, id, ix, val, WHO());
+}
+
+/* ダッシュボード等の再描画は連打が落ち着いてからまとめて行う（サクサク入力のため） */
+let redrawTimer=null;
+function scheduleRedraw(){ clearTimeout(redrawTimer); redrawTimer=setTimeout(redrawKeepingOpen, 700); }
+
+let SUBTITLE = '';
+
+/** 成功ハンドラの中で例外が起きても、無言で止まらず画面に理由を出す */
+function fatal(err){
+  sub('⚠ 表示できませんでした');
+  $('#v-dash').innerHTML =
+    `<div class="card"><h2>画面の組み立てでエラーが発生しました</h2>`
+    + `<p style="margin:10px 0">${esc(err && err.stack ? err.stack : String(err))}</p>`
+    + `<p>このメッセージを開発者に伝えてください。</p></div>`;
+}
+
+/* ---- 合言葉（Google ログインの代わり）。端末に1回入れれば記憶される ---- */
+let KEY = localStorage.getItem('harel_key') || '';
+const WHO = () => localStorage.getItem('harel_who') || '';
+
+function showGate(msg){
+  sub('合言葉を入力してください');
+  $('#v-dash').innerHTML =
+    `<div class="card" style="max-width:430px;margin:60px auto">
+      <h2>合言葉を入力してください</h2>
+      <div class="sub">この端末では初回のみ必要です。次回からは自動で開きます。</div>
+      ${msg?`<p style="color:var(--critical);font-size:12px;margin-bottom:8px">${esc(msg)}</p>`:''}
+      <input type="password" id="gatekey" style="width:100%;padding:10px;border:1px solid var(--ring);border-radius:8px;background:var(--plane);color:var(--ink-1);font-size:14px" placeholder="合言葉">
+      <button id="gatego" style="margin-top:10px;background:var(--series-1);color:#fff;border:none;border-radius:8px;padding:9px 18px;cursor:pointer;font-size:13px">開く</button>
+    </div>`;
+  $('#gatego').onclick = ()=>{
+    KEY = $('#gatekey').value.trim();
+    localStorage.setItem('harel_key', KEY);
+    boot();
+  };
+  $('#gatekey').addEventListener('keydown', e=>{ if(e.key==='Enter') $('#gatego').click(); });
+  setTimeout(()=>{ const g=$('#gatekey'); if(g) g.focus(); }, 50);
+}
+
+/* 記入者プルダウン：チェック・メモの「誰が」に残る名前 */
+function fillWho(){
+  const names=[...new Set(CLIENTS.flatMap(c=>[c.staff,c.zeirishi,c.reviewer]))].filter(Boolean).sort();
+  const cur=WHO();
+  $('#who').innerHTML='<option value="">記入者を選択</option>'
+    + names.map(n=>`<option value="${esc(n)}" ${n===cur?'selected':''}>記入者：${esc(n)}</option>`).join('');
+  $('#who').onchange=e=>localStorage.setItem('harel_who', e.target.value);
+}
+
+function boot(){
+  if(!KEY){ showGate(''); return; }
+  sub('読み込み中…');
+  google.script.run
+    .withSuccessHandler(d=>{
+      try{
+        CLIENTS   = d.clients   || [];
+        TEMPLATES = d.templates || [];
+        TMAP = Object.fromEntries(TEMPLATES.map(t=>[t.id,t]));
+        CMAP = Object.fromEntries(CLIENTS.map(c=>[c.id,c]));
+
+        /* サーバ側の「今日」に合わせる（端末の時計とずれても判定を揃えるため） */
+        if(d.today){ const s=new Date(d.today); s.setHours(0,0,0,0); today.setTime(s.getTime()); }
+
+        TASKS = (d.tasks||[]).map(adaptTask).sort((a,b)=>a.due-b.due);
+        TASKS.forEach(applyBits);
+
+        if(CLIENTS.length) curClient = CLIENTS[0].id;
+
+        SUBTITLE = `${CLIENTS.length}社 ／ ${TEMPLATES.length}業務 ／ ${TASKS.length}タスク`;
+        if(d.skipped) SUBTITLE += `（日付不正 ${d.skipped} 件を除外）`;
+        READY = true;
+        sub(d.notice ? `${SUBTITLE} ｜ ${d.notice}` : SUBTITLE);
+        fillWho();
+        renderDash(); renderKarte(); renderGantt(); renderTmpl();
+      }catch(err){ fatal(err); }
+    })
+    .withFailureHandler(err=>{
+      const m = err && err.message ? err.message : String(err);
+      if(m.indexOf('合言葉') >= 0 || m.indexOf('アクセスキー') >= 0){
+        localStorage.removeItem('harel_key'); KEY='';
+        showGate(m);
+        return;
+      }
+      sub('⚠ 読み込めませんでした');
+      $('#v-dash').innerHTML =
+        `<div class="card"><h2>データを読み込めませんでした</h2>`
+        + `<p style="margin-bottom:10px">${esc(m)}</p>`
+        + `<p>時間をおいてリロードしても直らない場合は、このメッセージを開発者に伝えてください。</p></div>`;
+    })
+    .apiBootstrap(KEY);
+}
+
+boot();
+</script>
+</body>
+</html>
