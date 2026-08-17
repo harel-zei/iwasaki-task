@@ -146,13 +146,12 @@ select,input[type=text]{font-family:inherit;font-size:12px;padding:5px 8px;borde
 /* ---------- 一覧入力（マトリクス） ---------- */
 .grid-wrap{overflow:auto;max-height:72vh;border:1px solid var(--ring);border-radius:10px;background:var(--surface-1)}
 .gridt{border-collapse:separate;border-spacing:0;font-size:12px}
-/* 見出しは90度回した箱で表示する（縦書きだと端末によって字が重なるため） */
-.gridt th.gh{height:150px;width:28px;min-width:28px;padding:0;position:relative;
+/* 見出しは縦書き（1文字の幅で折り返して縦に積む。端末による字の重なりを避けるため） */
+.gridt th.gh{height:190px;width:32px;min-width:32px;padding:8px 0;vertical-align:top;
   border-bottom:1px solid var(--ring);border-left:1px solid var(--ring);background:var(--plane);position:sticky;top:0;z-index:2}
-.gridt th.gh div{position:absolute;bottom:8px;left:21px;transform-origin:0 0;transform:rotate(-90deg);
-  white-space:nowrap;max-width:134px;overflow:hidden;text-overflow:ellipsis;
-  font-size:12px;font-weight:700;color:var(--ink-1);line-height:1;text-align:left;
-  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;backface-visibility:hidden}
+.gridt th.gh div{width:1em;margin:0 auto;font-size:12px;font-weight:700;color:var(--ink-1);
+  line-height:1.14;text-align:center;word-break:break-all;white-space:normal;
+  max-height:172px;overflow:hidden}
 .gridt th.gh0{position:sticky;top:0;left:0;z-index:4;background:var(--plane);border-bottom:1px solid var(--ring);text-align:left;padding:6px 10px;writing-mode:horizontal-tb}
 .gridt td.gc{border-left:1px solid var(--ring);border-bottom:1px dashed var(--ring);text-align:center;padding:3px 5px;min-width:26px}
 .gridt td.gc.na{color:var(--ink-3);font-size:10px}
@@ -204,17 +203,15 @@ select,input[type=text]{font-family:inherit;font-size:12px;padding:5px 8px;borde
 /* ---------- 受託業務（顧問先 × 業務） ---------- */
 .svc-wrap{overflow:auto;max-height:74vh;border:1px solid var(--ring);border-radius:10px;background:var(--surface-1)}
 .svct{border-collapse:separate;border-spacing:0;font-size:12px}
-/* 縦書き（writing-mode）は端末のフォントによって字が重なることがあるため、
-   文字を90度回した箱を置く方式にしている。
-   回した文字は、そのままだと色のにじみ（赤や青のふち）が出るので
-   -webkit-font-smoothing で滑らかな描画に切り替えている。 */
-.svct th.sv{height:186px;width:36px;min-width:36px;padding:0;position:relative;
+/* 見出しは縦書き（文字は起こしたまま上から下へ）。
+   CSS の writing-mode は端末のフォントによって字が重なることがあるため、
+   「1文字の幅で折り返す」方法で縦に積んでいる。どの端末でも同じに見える。 */
+.svct th.sv{height:200px;width:34px;min-width:34px;padding:8px 0 10px;position:relative;vertical-align:top;
   background:var(--plane);position:sticky;top:0;z-index:2;border-left:1px solid var(--ring);border-bottom:1px solid var(--ring)}
 .svct th.sv:nth-child(even){background:var(--surface-1)}
-.svct th.sv div{position:absolute;bottom:10px;left:25px;transform-origin:0 0;transform:rotate(-90deg);
-  white-space:nowrap;max-width:166px;overflow:hidden;text-overflow:ellipsis;
-  font-size:12.5px;font-weight:700;color:var(--ink-1);line-height:1;text-align:left;
-  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;backface-visibility:hidden}
+.svct th.sv div{width:1em;margin:0 auto;font-size:12.5px;font-weight:700;color:var(--ink-1);
+  line-height:1.14;text-align:center;word-break:break-all;white-space:normal;
+  max-height:180px;overflow:hidden}
 .svct th.sv i.cbar{position:absolute;left:0;right:0;bottom:0;height:3px}   /* 区分の色 */
 .svct tbody tr:hover td{background:rgba(127,127,127,.10)}
 .svct td.svc:nth-child(even){background:rgba(127,127,127,.045)}
