@@ -149,9 +149,10 @@ select,input[type=text]{font-family:inherit;font-size:12px;padding:5px 8px;borde
 /* 見出しは90度回した箱で表示する（縦書きだと端末によって字が重なるため） */
 .gridt th.gh{height:150px;width:28px;min-width:28px;padding:0;position:relative;
   border-bottom:1px solid var(--ring);border-left:1px solid var(--ring);background:var(--plane);position:sticky;top:0;z-index:2}
-.gridt th.gh div{position:absolute;bottom:8px;left:20px;transform-origin:0 0;transform:rotate(-90deg);
+.gridt th.gh div{position:absolute;bottom:8px;left:21px;transform-origin:0 0;transform:rotate(-90deg);
   white-space:nowrap;max-width:134px;overflow:hidden;text-overflow:ellipsis;
-  font-size:10.5px;font-weight:600;color:var(--ink-2);line-height:1;text-align:left}
+  font-size:12px;font-weight:700;color:var(--ink-1);line-height:1;text-align:left;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;backface-visibility:hidden}
 .gridt th.gh0{position:sticky;top:0;left:0;z-index:4;background:var(--plane);border-bottom:1px solid var(--ring);text-align:left;padding:6px 10px;writing-mode:horizontal-tb}
 .gridt td.gc{border-left:1px solid var(--ring);border-bottom:1px dashed var(--ring);text-align:center;padding:3px 5px;min-width:26px}
 .gridt td.gc.na{color:var(--ink-3);font-size:10px}
@@ -204,12 +205,19 @@ select,input[type=text]{font-family:inherit;font-size:12px;padding:5px 8px;borde
 .svc-wrap{overflow:auto;max-height:74vh;border:1px solid var(--ring);border-radius:10px;background:var(--surface-1)}
 .svct{border-collapse:separate;border-spacing:0;font-size:12px}
 /* 縦書き（writing-mode）は端末のフォントによって字が重なることがあるため、
-   文字を90度回した箱を置く方式にしている */
-.svct th.sv{height:172px;width:30px;min-width:30px;padding:0;position:relative;
+   文字を90度回した箱を置く方式にしている。
+   回した文字は、そのままだと色のにじみ（赤や青のふち）が出るので
+   -webkit-font-smoothing で滑らかな描画に切り替えている。 */
+.svct th.sv{height:186px;width:36px;min-width:36px;padding:0;position:relative;
   background:var(--plane);position:sticky;top:0;z-index:2;border-left:1px solid var(--ring);border-bottom:1px solid var(--ring)}
-.svct th.sv div{position:absolute;bottom:8px;left:21px;transform-origin:0 0;transform:rotate(-90deg);
-  white-space:nowrap;max-width:156px;overflow:hidden;text-overflow:ellipsis;
-  font-size:10.5px;font-weight:600;color:var(--ink-2);line-height:1;text-align:left}
+.svct th.sv:nth-child(even){background:var(--surface-1)}
+.svct th.sv div{position:absolute;bottom:10px;left:25px;transform-origin:0 0;transform:rotate(-90deg);
+  white-space:nowrap;max-width:166px;overflow:hidden;text-overflow:ellipsis;
+  font-size:12.5px;font-weight:700;color:var(--ink-1);line-height:1;text-align:left;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;backface-visibility:hidden}
+.svct th.sv i.cbar{position:absolute;left:0;right:0;bottom:0;height:3px}   /* 区分の色 */
+.svct tbody tr:hover td{background:rgba(127,127,127,.10)}
+.svct td.svc:nth-child(even){background:rgba(127,127,127,.045)}
 .svct th.sv0{position:sticky;top:0;left:0;z-index:4;background:var(--plane);text-align:left;padding:6px 10px;
   writing-mode:horizontal-tb;border-bottom:1px solid var(--ring)}
 .svct td.svname{position:sticky;left:0;background:var(--surface-1);z-index:1;padding:5px 10px;min-width:230px;
@@ -744,9 +752,11 @@ function renderKarte(){
 }
 
 /* ---- 受託業務（行=顧問先 × 列=業務。何を引き受けて、何をやらないか） ---- */
-const SV={month:'all', staff:'all', kind:'all', q:''};
+const SV={month:'all', staff:'all', kind:'all', q:'', cat:'all'};
 
 function renderSvc(){
+  /* 39業務すべてを一度に出すと見づらいので、区分で絞り込めるようにする */
+  const cols = SV.cat==='all' ? TEMPLATES : TEMPLATES.filter(t=>t.cat===SV.cat);
   let list=CLIENTS.slice();
   if(SV.month!=='all') list=list.filter(c=>c.fiscalMonth===+SV.month);
   if(SV.staff!=='all') list=list.filter(c=>c.staff===SV.staff||c.zeirishi===SV.staff||c.reviewer===SV.staff);
@@ -754,11 +764,13 @@ function renderSvc(){
   if(SV.q) list=list.filter(c=>(c.id+' '+c.name).indexOf(SV.q)>=0);
   list.sort((a,b)=>a.id<b.id?-1:1);
 
-  const head=TEMPLATES.map(t=>`<th class="sv" title="${esc(t.name)}"><div>${esc(t.name)}</div></th>`).join('');
+  const head=cols.map(t=>`<th class="sv" title="${esc(t.name)}｜${CAT[t.cat]?CAT[t.cat].label:''}">
+    <div>${esc(t.name)}</div>
+    <i class="cbar" style="background:${CAT[t.cat]?CAT[t.cat].color:'var(--axis)'}"></i></th>`).join('');
   const body=list.map(c=>{
     const has=new Set(c.svc||[]);
     /* data-t は使わない。タスクのチェック処理（input[data-t]）に拾われてしまうため */
-    const cells=TEMPLATES.map(t=>
+    const cells=cols.map(t=>
       `<td class="svc"><input type="checkbox" data-sc="${esc(c.id)}" data-st="${esc(t.id)}" ${has.has(t.id)?'checked':''}
         title="${esc(c.name)}／${esc(t.name)}"></td>`).join('');
     return `<tr><td class="svname" title="${esc(c.name)}">
@@ -773,15 +785,21 @@ function renderSvc(){
     + staffList().map(s=>`<option value="${esc(s)}" ${SV.staff===s?'selected':''}>${esc(s)}</option>`).join('');
   const kindOpts=`<option value="all">法人／個人：すべて</option>`
     + ['法人','個人'].map(k=>`<option value="${k}" ${SV.kind===k?'selected':''}>${k}</option>`).join('');
+  const catOpts=`<option value="all">業務の区分：すべて（${TEMPLATES.length}）</option>`
+    + Object.keys(CAT).map(k=>{
+        const n=TEMPLATES.filter(t=>t.cat===k).length;
+        return n ? `<option value="${k}" ${SV.cat===k?'selected':''}>${CAT[k].label}（${n}）</option>` : '';
+      }).join('');
 
   $('#v-svc').innerHTML=`
   <div class="card fbar" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+    <select id="sv_cat">${catOpts}</select>
     <select id="sv_mon">${monOpts}</select>
     <select id="sv_staff">${staffOpts}</select>
     <select id="sv_kind">${kindOpts}</select>
     <input type="text" id="sv_q" placeholder="顧問先名・コードで絞り込み" value="${esc(SV.q)}"
       style="font-family:inherit;font-size:12px;padding:5px 8px;border:1px solid var(--axis);border-radius:6px;background:var(--surface-1);color:var(--ink-1)">
-    <span class="cnt" style="font-size:11px;color:var(--ink-3)">${list.length} 社</span>
+    <span class="cnt" style="font-size:11px;color:var(--ink-3)">${list.length} 社 × ${cols.length} 業務</span>
     <span class="sub" id="sv_msg" style="font-size:11px;color:var(--ink-3)"></span>
   </div>
   <div class="hint"><b>チェックが入っている業務だけ、タスクが作られます。</b>外すと今後は作られません。
@@ -791,6 +809,7 @@ function renderSvc(){
     <tbody>${body}</tbody>
   </table></div>`;
 
+  $('#sv_cat').onchange  =e=>{SV.cat=e.target.value; renderSvc();};
   $('#sv_mon').onchange  =e=>{SV.month=e.target.value; renderSvc();};
   $('#sv_staff').onchange=e=>{SV.staff=e.target.value; renderSvc();};
   $('#sv_kind').onchange =e=>{SV.kind=e.target.value; renderSvc();};
