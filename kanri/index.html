@@ -213,6 +213,8 @@ select,input[type=text]{font-family:inherit;font-size:12px;padding:5px 8px;borde
   line-height:1.14;text-align:center;word-break:break-all;white-space:normal;
   max-height:180px;overflow:hidden}
 .svct th.sv i.cbar{position:absolute;left:0;right:0;bottom:0;height:3px}   /* 区分の色 */
+/* 縦書きで90度回す文字（長音・カッコなど） */
+.vrot{display:inline-block;transform:rotate(90deg)}
 .svct tbody tr:hover td{background:rgba(127,127,127,.10)}
 .svct td.svc:nth-child(even){background:rgba(127,127,127,.045)}
 .svct th.sv0{position:sticky;top:0;left:0;z-index:4;background:var(--plane);text-align:left;padding:6px 10px;
@@ -452,6 +454,12 @@ const ST={done:{l:'完了',c:'b-good'},late:{l:'期限超過',c:'b-crit'},risk:{
    ========================================================================= */
 const $=(s,r=document)=>r.querySelector(s);
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+
+/* 縦書きの見出し用。長音「ー」やカッコは、そのままだと横向きに残るので
+   90度回して縦書きの形にする（ー→｜、（→∧ のように）。 */
+const VROT=/[ー－—―–‐−ｰ〜～（）()「」『』【】〔〕［］\[\]｛｝{}〈〉《》＜＞：；:;]/;
+const vtext=s=>String(s==null?'':s).split('')
+  .map(ch=>VROT.test(ch)?`<span class="vrot">${esc(ch)}</span>`:esc(ch)).join('');
 
 /* ---- ダッシュボード ---- */
 function renderDash(){
@@ -794,7 +802,7 @@ function renderSvc(){
   list.sort((a,b)=>a.id<b.id?-1:1);
 
   const head=cols.map(t=>`<th class="sv" title="${esc(t.name)}｜${CAT[t.cat]?CAT[t.cat].label:''}">
-    <div>${esc(t.name)}</div>
+    <div>${vtext(t.name)}</div>
     <i class="cbar" style="background:${CAT[t.cat]?CAT[t.cat].color:'var(--axis)'}"></i></th>`).join('');
   const body=list.map(c=>{
     const has=new Set(c.svc||[]);
@@ -1138,7 +1146,7 @@ function renderGrid(){
     + [...new Set(CLIENTS.flatMap(c=>[c.staff,c.zeirishi,c.reviewer]))].filter(Boolean).sort()
       .map(s=>`<option value="${esc(s)}" ${GR.staff===s?'selected':''}>${esc(s)}</option>`).join('');
 
-  const head=tpl.items.map((it,ti)=>`<th class="gh" title="${esc(it.t)}"><div>${esc(it.t.replace(/^★ /,''))}</div></th>`).join('');
+  const head=tpl.items.map((it,ti)=>`<th class="gh" title="${esc(it.t)}"><div>${vtext(it.t.replace(/^★ /,''))}</div></th>`).join('');
   const body=rows.map((t,r)=>{
     const c=CMAP[t.cid]||{};
     const done=state.done[t.id]||new Set();
