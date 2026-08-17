@@ -146,8 +146,12 @@ select,input[type=text]{font-family:inherit;font-size:12px;padding:5px 8px;borde
 /* ---------- 一覧入力（マトリクス） ---------- */
 .grid-wrap{overflow:auto;max-height:72vh;border:1px solid var(--ring);border-radius:10px;background:var(--surface-1)}
 .gridt{border-collapse:separate;border-spacing:0;font-size:12px}
-.gridt th.gh{writing-mode:vertical-rl;height:136px;padding:8px 3px;font-weight:600;font-size:10.5px;color:var(--ink-2);border-bottom:1px solid var(--ring);border-left:1px solid var(--ring);background:var(--plane);position:sticky;top:0;z-index:2;white-space:nowrap}
-.gridt th.gh div{max-height:124px;overflow:hidden}
+/* 見出しは90度回した箱で表示する（縦書きだと端末によって字が重なるため） */
+.gridt th.gh{height:150px;width:28px;min-width:28px;padding:0;position:relative;
+  border-bottom:1px solid var(--ring);border-left:1px solid var(--ring);background:var(--plane);position:sticky;top:0;z-index:2}
+.gridt th.gh div{position:absolute;bottom:8px;left:20px;transform-origin:0 0;transform:rotate(-90deg);
+  white-space:nowrap;max-width:134px;overflow:hidden;text-overflow:ellipsis;
+  font-size:10.5px;font-weight:600;color:var(--ink-2);line-height:1;text-align:left}
 .gridt th.gh0{position:sticky;top:0;left:0;z-index:4;background:var(--plane);border-bottom:1px solid var(--ring);text-align:left;padding:6px 10px;writing-mode:horizontal-tb}
 .gridt td.gc{border-left:1px solid var(--ring);border-bottom:1px dashed var(--ring);text-align:center;padding:3px 5px;min-width:26px}
 .gridt td.gc.na{color:var(--ink-3);font-size:10px}
@@ -173,6 +177,47 @@ select,input[type=text]{font-family:inherit;font-size:12px;padding:5px 8px;borde
 .wpop{position:absolute;z-index:95;background:var(--surface-1);border:1px solid var(--axis);border-radius:10px;
   padding:10px;box-shadow:0 10px 30px rgba(0,0,0,.35);max-width:360px}
 .wpop .wlab{font-size:11px;color:var(--ink-3);margin-bottom:7px}
+
+/* ---------- 業務テンプレートの編集 ---------- */
+.pbtn{background:var(--series-1);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:12.5px}
+.sbtn{background:transparent;border:1px solid var(--axis);border-radius:7px;color:var(--ink-2);padding:5px 10px;font-size:11.5px}
+.sbtn:hover{background:var(--plane);color:var(--ink-1)}
+.sbtn.danger{border-color:rgba(208,59,59,.5);color:var(--critical)}
+.tform{border:1px solid var(--series-1);border-radius:10px;padding:12px;margin-bottom:12px;background:var(--plane)}
+.tform .frow{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:8px}
+.tform label{display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--ink-3)}
+.tform label.wide{flex:1;min-width:260px}
+.tform input,.tform select{font-family:inherit;font-size:12.5px;padding:6px 8px;border:1px solid var(--axis);
+  border-radius:6px;background:var(--surface-1);color:var(--ink-1)}
+.tform label.wide input{width:100%}
+.tform .fhelp{font-size:11px;color:var(--ink-3);margin-bottom:8px}
+.itemrow{display:flex;gap:7px;align-items:center;padding:5px 0;border-bottom:1px dotted var(--grid);font-size:12px;flex-wrap:wrap}
+.itemrow .ord{width:22px;text-align:right;color:var(--ink-3);font-size:11px}
+.itemrow .i-name{flex:1;min-width:220px;font-family:inherit;font-size:12.5px;padding:5px 8px;
+  border:1px solid var(--axis);border-radius:6px;background:var(--surface-1);color:var(--ink-1)}
+.itemrow .i-off{width:74px;font-family:inherit;font-size:12.5px;padding:5px 6px;text-align:center;
+  border:1px solid var(--axis);border-radius:6px;background:var(--surface-1);color:var(--ink-1)}
+.itemrow .i-chk{display:flex;align-items:center;gap:3px;font-size:11px;color:var(--ink-2)}
+.itemrow .i-cond{font-size:10.5px;color:var(--series-1);min-width:110px}
+
+/* ---------- 受託業務（顧問先 × 業務） ---------- */
+.svc-wrap{overflow:auto;max-height:74vh;border:1px solid var(--ring);border-radius:10px;background:var(--surface-1)}
+.svct{border-collapse:separate;border-spacing:0;font-size:12px}
+/* 縦書き（writing-mode）は端末のフォントによって字が重なることがあるため、
+   文字を90度回した箱を置く方式にしている */
+.svct th.sv{height:172px;width:30px;min-width:30px;padding:0;position:relative;
+  background:var(--plane);position:sticky;top:0;z-index:2;border-left:1px solid var(--ring);border-bottom:1px solid var(--ring)}
+.svct th.sv div{position:absolute;bottom:8px;left:21px;transform-origin:0 0;transform:rotate(-90deg);
+  white-space:nowrap;max-width:156px;overflow:hidden;text-overflow:ellipsis;
+  font-size:10.5px;font-weight:600;color:var(--ink-2);line-height:1;text-align:left}
+.svct th.sv0{position:sticky;top:0;left:0;z-index:4;background:var(--plane);text-align:left;padding:6px 10px;
+  writing-mode:horizontal-tb;border-bottom:1px solid var(--ring)}
+.svct td.svname{position:sticky;left:0;background:var(--surface-1);z-index:1;padding:5px 10px;min-width:230px;
+  border-bottom:1px dashed var(--ring);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.svct td.svname .code{color:var(--ink-3);font-size:10.5px;margin-right:4px}
+.svct td.svc{text-align:center;padding:3px 5px;border-left:1px solid var(--ring);border-bottom:1px dashed var(--ring);min-width:28px}
+.svct td.svc input{width:16px;height:16px;cursor:pointer;accent-color:var(--series-1)}
+.svct td.svc.busy{opacity:.4}
 
 /* ---------- task cards / checklist ---------- */
 .tcard{border:1px solid var(--ring);border-radius:10px;margin-bottom:9px;background:var(--surface-1);overflow:hidden}
@@ -277,6 +322,7 @@ select,input[type=text]{font-family:inherit;font-size:12px;padding:5px 8px;borde
     <button data-v="gantt">進捗（ガント）</button>
     <button data-v="grid">一覧入力</button>
     <button data-v="karte">顧問先カルテ</button>
+    <button data-v="svc">受託業務</button>
     <button data-v="tmpl">業務テンプレート</button>
   </nav>
   <div class="spacer"></div>
@@ -290,6 +336,7 @@ select,input[type=text]{font-family:inherit;font-size:12px;padding:5px 8px;borde
   <section class="view" id="v-gantt"></section>
   <section class="view" id="v-grid"></section>
   <section class="view" id="v-karte"></section>
+  <section class="view" id="v-svc"></section>
   <section class="view" id="v-tmpl"></section>
 </main>
 
@@ -345,12 +392,18 @@ const fyEnd = c => { let f=eom(today.getFullYear(), c.fiscalMonth); return f<tod
 /* ---- タスクも GAS 側（Generator.gs）が生成したものを受け取る ---- */
 const state = {done:{}};
 let TASKS = [];
-const prog = t => t.items.length ? (state.done[t.id]?state.done[t.id].size:0)/t.items.length : 0;
+/* 済んだ数は「表示されている項目のうちチェックが入っているもの」で数える。
+   条件で表示されない項目の桁が立っていても、進捗率には含めない。 */
+const doneCount = t => {
+  const s=state.done[t.id]; if(!s) return 0;
+  let n=0; t.items.forEach(it=>{ if(s.has(it.bi)) n++; }); return n;
+};
+const prog = t => t.items.length ? doneCount(t)/t.items.length : 0;
 function status(t){
   const p=prog(t);
   if(p>=1) return 'done';
   if(t.due<today) return 'late';
-  if(t.items.some((it,ix)=> it.date<today && !(state.done[t.id]&&state.done[t.id].has(ix)))) return 'risk';
+  if(t.items.some(it=> it.date<today && !(state.done[t.id]&&state.done[t.id].has(it.bi)))) return 'risk';
   if(t.start<=today) return 'wip';
   return 'todo';
 }
@@ -387,7 +440,7 @@ function renderDash(){
 
   const rows = arr => arr.slice(0,16).map(t=>{
     const st=status(t), p=Math.round(prog(t)*100);
-    const nxt=t.items.filter((it,ix)=>!(state.done[t.id]&&state.done[t.id].has(ix)))[0];
+    const nxt=t.items.filter(it=>!(state.done[t.id]&&state.done[t.id].has(it.bi)))[0];
     const dd=Math.round((t.due-today)/DAY);
     return `<tr><td><span style="color:var(--ink-3);font-size:10.5px">${t.cid}</span> ${esc(t.cname)}</td>
       <td><span class="cat"><i class="dot" style="background:${CAT[t.cat].color}"></i>${t.isNew?'<span class="newb">新</span> ':''}${esc(t.name)}</span>
@@ -594,7 +647,8 @@ function renderKarte(){
     const st=status(t), p=Math.round(prog(t)*100);
     const dset=state.done[t.id]||new Set();
     const ds=dateArr(t);
-    const items=t.items.map((it,ix)=>{
+    const items=t.items.map(it=>{
+      const ix=it.bi;
       const dn=dset.has(ix), over=!dn&&it.date<today;
       return `<label class="chk ${dn?'done':''}">
         <input type="checkbox" data-t="${t.id}" data-i="${ix}" ${dn?'checked':''}>
@@ -689,27 +743,313 @@ function renderKarte(){
   };
 }
 
-/* ---- 業務テンプレート ---- */
+/* ---- 受託業務（行=顧問先 × 列=業務。何を引き受けて、何をやらないか） ---- */
+const SV={month:'all', staff:'all', kind:'all', q:''};
+
+function renderSvc(){
+  let list=CLIENTS.slice();
+  if(SV.month!=='all') list=list.filter(c=>c.fiscalMonth===+SV.month);
+  if(SV.staff!=='all') list=list.filter(c=>c.staff===SV.staff||c.zeirishi===SV.staff||c.reviewer===SV.staff);
+  if(SV.kind!=='all')  list=list.filter(c=>c.kind===SV.kind);
+  if(SV.q) list=list.filter(c=>(c.id+' '+c.name).indexOf(SV.q)>=0);
+  list.sort((a,b)=>a.id<b.id?-1:1);
+
+  const head=TEMPLATES.map(t=>`<th class="sv" title="${esc(t.name)}"><div>${esc(t.name)}</div></th>`).join('');
+  const body=list.map(c=>{
+    const has=new Set(c.svc||[]);
+    /* data-t は使わない。タスクのチェック処理（input[data-t]）に拾われてしまうため */
+    const cells=TEMPLATES.map(t=>
+      `<td class="svc"><input type="checkbox" data-sc="${esc(c.id)}" data-st="${esc(t.id)}" ${has.has(t.id)?'checked':''}
+        title="${esc(c.name)}／${esc(t.name)}"></td>`).join('');
+    return `<tr><td class="svname" title="${esc(c.name)}">
+      <span class="code">${esc(c.id)}</span> ${esc(c.name)}
+      <span class="sub2" style="font-size:10px;color:var(--ink-3)"> ${c.fiscalMonth}月決算／${esc(c.staff||'担当未設定')}／<b id="svn-${esc(c.id)}">${has.size}</b> 業務</span>
+      </td>${cells}</tr>`;
+  }).join('');
+
+  const monOpts=`<option value="all">決算月：すべて</option>`
+    + Array.from({length:12},(_,i)=>i+1).map(m=>`<option value="${m}" ${SV.month==String(m)?'selected':''}>${m}月決算</option>`).join('');
+  const staffOpts=`<option value="all">担当：すべて</option>`
+    + staffList().map(s=>`<option value="${esc(s)}" ${SV.staff===s?'selected':''}>${esc(s)}</option>`).join('');
+  const kindOpts=`<option value="all">法人／個人：すべて</option>`
+    + ['法人','個人'].map(k=>`<option value="${k}" ${SV.kind===k?'selected':''}>${k}</option>`).join('');
+
+  $('#v-svc').innerHTML=`
+  <div class="card fbar" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+    <select id="sv_mon">${monOpts}</select>
+    <select id="sv_staff">${staffOpts}</select>
+    <select id="sv_kind">${kindOpts}</select>
+    <input type="text" id="sv_q" placeholder="顧問先名・コードで絞り込み" value="${esc(SV.q)}"
+      style="font-family:inherit;font-size:12px;padding:5px 8px;border:1px solid var(--axis);border-radius:6px;background:var(--surface-1);color:var(--ink-1)">
+    <span class="cnt" style="font-size:11px;color:var(--ink-3)">${list.length} 社</span>
+    <span class="sub" id="sv_msg" style="font-size:11px;color:var(--ink-3)"></span>
+  </div>
+  <div class="hint"><b>チェックが入っている業務だけ、タスクが作られます。</b>外すと今後は作られません。
+    まだ手を付けていないタスクはその場で消えますが、<b>進捗が入っているタスクは記録として残します</b>。</div>
+  <div class="svc-wrap"><table class="svct">
+    <thead><tr><th class="sv0">顧問先</th>${head}</tr></thead>
+    <tbody>${body}</tbody>
+  </table></div>`;
+
+  $('#sv_mon').onchange  =e=>{SV.month=e.target.value; renderSvc();};
+  $('#sv_staff').onchange=e=>{SV.staff=e.target.value; renderSvc();};
+  $('#sv_kind').onchange =e=>{SV.kind=e.target.value; renderSvc();};
+  $('#sv_q').onchange    =e=>{SV.q=e.target.value.trim(); renderSvc();};
+}
+
+/* 受託のチェックを切り替えたら、その場で保存する */
+document.addEventListener('change',e=>{
+  const cb=e.target.closest('.svct input[type=checkbox]'); if(!cb) return;
+  const cid=cb.dataset.sc, tid=cb.dataset.st, on=cb.checked;
+  const c=CMAP[cid]; if(!c) return;
+  const set=new Set(c.svc||[]);
+  on ? set.add(tid) : set.delete(tid);
+  const next=TEMPLATES.filter(t=>set.has(t.id)).map(t=>t.id);   // 業務の並び順にそろえる
+  const td=cb.closest('td'); td.classList.add('busy');
+  const msg=$('#sv_msg'); if(msg) msg.textContent='保存中…';
+
+  google.script.run
+    .withSuccessHandler(r=>{
+      c.svc=next;
+      td.classList.remove('busy');
+      const n=$('#svn-'+cid); if(n) n.textContent=next.length;
+      if(msg) msg.textContent = (r && r.removed)
+        ? `保存しました（未着手のタスク ${r.removed} 件を整理${r.kept?`／進捗ありの ${r.kept} 件は残しました`:''}）`
+        : '保存しました';
+      if(r && (r.removed||0)>0){          // 消えたタスクを画面からも外す
+        TASKS = TASKS.filter(t=>!(t.cid===cid && t.tid===tid && !(state.done[t.id]&&state.done[t.id].size)));
+        renderDash();
+      }
+    })
+    .withFailureHandler(err=>{
+      cb.checked=!on; td.classList.remove('busy');
+      if(msg) msg.textContent='⚠ 保存できませんでした: '+(err&&err.message||err);
+    })
+    .apiSetClientServices(KEY, cid, next, WHO());
+});
+
+/* ---- 業務テンプレート（追加・変更・並べ替え・無効化） ---- */
+const ANCHOR_LABEL={fiscal:'決算日を基準に自動展開',calendar:'暦の固定日',monthly:'毎月／隔月（期限を基準）',adhoc:'都度発生'};
+let TMPL_EDIT=null;        // いま編集している業務ID（null なら編集していない）
+
 function renderTmpl(){
   const nNew=TEMPLATES.filter(t=>t.isNew).length;
   $('#v-tmpl').innerHTML=`
-  <div class="hint">全 ${TEMPLATES.length} 業務。うち <b>${TEMPLATES.length-nNew} 業務は既存の管理表の列をそのまま項目化</b>したもの、<b>${nNew} 業務が新規</b>です。<span class="addb">追加</span> は既存の列に無かった項目で、そのほとんどが「納付完了の確認」と「提出先の全件確認」です。</div>
-  ${TEMPLATES.map(t=>{
-    const anchor={fiscal:'決算日を基準に自動展開',calendar:'暦の固定日',monthly:'毎月／隔月（期限を基準）',adhoc:'都度発生'}[t.anchor];
-    const n=CLIENTS.filter(c=>c.svc.includes(t.id)).length;
-    return `<div class="card">
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">
-        <i class="dot" style="background:${CAT[t.cat].color}"></i>
-        ${t.isNew?'<span class="newb">新</span>':''}<h3 style="font-size:14px">${esc(t.name)}</h3>
-        <span class="pill">${CAT[t.cat].label}</span><span class="pill">${anchor}</span>
-        <span class="pill">${t.items.length} 項目</span><span class="pill">対象 ${n} 社</span></div>
-      <div class="sub" style="margin-bottom:4px">出所：${t.src?esc(t.src):'<b style="color:var(--series-5)">現在どこにも管理表がありません</b>'}</div>
-      <div class="sub" style="margin-bottom:10px">${esc(t.memo)}</div>
-      ${t.items.map(it=>`<div class="tmplitem">${it.star?'<span class="star">★</span> ':''}${esc(it.t.replace(/^★ /,''))}
-        ${it.when?`<span class="cond">納付方法 ${it.when.join('/')}</span>`:''}
-        ${it.flag?`<span class="cond">${it.flag==='jigyosho'?'事業所税あり':'書面添付あり'}の先のみ</span>`:''}
-        ${it.add?'<span class="addb">追加</span>':''}</div>`).join('')}
-    </div>`}).join('')}`;
+  <div class="hint">全 ${TEMPLATES.length} 業務。うち <b>${TEMPLATES.length-nNew} 業務は既存の管理表の列をそのまま項目化</b>したもの、<b>${nNew} 業務が新規</b>です。
+    <span class="addb">追加</span> は既存の列に無かった項目です。<br>
+    <b>この画面で業務と項目を編集できます。</b>項目を足したり並べ替えたりしても、既に入っている進捗はズレません（項目ごとに固定の番号で管理しているため）。</div>
+  <div class="card" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <button class="pbtn" id="tpl-new">＋ 業務を追加</button>
+    <span class="sub" id="tpl-msg"></span>
+  </div>
+  ${TEMPLATES.map(t=>tmplCard(t)).join('')}`;
+
+  $('#tpl-new').onclick=()=>openTmplEditor(null);
+  bindTmplEvents();
+}
+
+function tmplCard(t){
+  const n=CLIENTS.filter(c=>c.svc.includes(t.id)).length;
+  const editing = TMPL_EDIT===t.id;
+  return `<div class="card" data-tpl="${esc(t.id)}">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">
+      <i class="dot" style="background:${CAT[t.cat]?CAT[t.cat].color:'var(--ink-3)'}"></i>
+      ${t.isNew?'<span class="newb">新</span>':''}<h3 style="font-size:14px">${esc(t.name)}</h3>
+      <span class="pill">${CAT[t.cat]?CAT[t.cat].label:esc(t.cat)}</span>
+      <span class="pill">${ANCHOR_LABEL[t.anchor]||esc(t.anchor)}</span>
+      <span class="pill">${t.items.length} 項目</span><span class="pill">対象 ${n} 社</span>
+      <span class="pill" style="color:var(--ink-3)">ID ${esc(t.id)}</span>
+      <span style="margin-left:auto;display:flex;gap:6px">
+        <button class="sbtn" data-act="edit" data-id="${esc(t.id)}">${editing?'閉じる':'業務を編集'}</button>
+        <button class="sbtn" data-act="additem" data-id="${esc(t.id)}">＋ 項目を追加</button>
+        <button class="sbtn danger" data-act="off" data-id="${esc(t.id)}">無効にする</button>
+      </span></div>
+    ${editing?tmplForm(t):''}
+    <div class="sub" style="margin-bottom:4px">出所：${t.src?esc(t.src):'<b style="color:var(--series-5)">現在どこにも管理表がありません</b>'}</div>
+    <div class="sub" style="margin-bottom:10px">${esc(t.memo)}</div>
+    ${t.items.map((it,ix)=>tmplItemRow(t,it,ix)).join('')}
+  </div>`;
+}
+
+/* 業務そのものの編集フォーム */
+function tmplForm(t){
+  const isNew = !t.id;
+  const opt=(v,cur,lab)=>`<option value="${esc(v)}" ${v===cur?'selected':''}>${esc(lab||v)}</option>`;
+  return `<div class="tform" data-form="${esc(t.id||'')}">
+    <div class="frow">
+      <label>業務ID<input type="text" id="tf-id" value="${esc(t.id||'')}" ${isNew?'':'readonly'} placeholder="hojin_kessan"></label>
+      <label>業務名<input type="text" id="tf-name" value="${esc(t.name||'')}" placeholder="法人決算申告"></label>
+      <label>区分<select id="tf-cat">${Object.keys(CAT).map(k=>opt(k,t.cat,CAT[k].label)).join('')}</select></label>
+      <label>基準<select id="tf-anchor">${Object.keys(ANCHOR_LABEL).map(k=>opt(k,t.anchor,ANCHOR_LABEL[k])).join('')}</select></label>
+    </div>
+    <div class="frow">
+      <label>着手<input type="text" id="tf-start" value="${esc(offToStr(t.start))}" placeholder="-30 または 1_10"></label>
+      <label>期日<input type="text" id="tf-due" value="${esc(offToStr(t.due))}" placeholder="60 または 1_31"></label>
+      <label class="wide">説明<input type="text" id="tf-memo" value="${esc(t.memo||'')}"></label>
+    </div>
+    <div class="fhelp">「決算日を基準」なら日数（決算日+60日なら <b>60</b>）、「暦の固定日」なら月_日（1月31日なら <b>1_31</b>）を入れてください。</div>
+    <div class="frow"><button class="pbtn" data-act="savetpl" data-id="${esc(t.id||'')}">保存</button>
+      <span class="sub" id="tf-msg"></span></div>
+  </div>`;
+}
+
+/* 1項目の行（そのまま編集できる） */
+function tmplItemRow(t,it,ix){
+  const editing = TMPL_EDIT===t.id;
+  if(!editing) return `<div class="tmplitem">${it.star?'<span class="star">★</span> ':''}${esc(it.t.replace(/^★ /,''))}
+    ${it.when?`<span class="cond">納付方法 ${it.when.join('/')}</span>`:''}
+    ${it.flag?`<span class="cond">${it.flag==='jigyosho'?'事業所税あり':'書面添付あり'}の先のみ</span>`:''}
+    ${it.add?'<span class="addb">追加</span>':''}</div>`;
+  return `<div class="itemrow" data-iid="${it.iid}">
+    <span class="ord">${ix+1}</span>
+    <input type="text" class="i-name" value="${esc(it.t.replace(/^★ /,''))}">
+    <input type="text" class="i-off" value="${esc(offToStr(it.off))}" title="期日からの日数（-14 など）／暦なら 1_31" placeholder="0">
+    <label class="i-chk"><input type="checkbox" class="i-star" ${it.star?'checked':''}>★</label>
+    <label class="i-chk"><input type="checkbox" class="i-add" ${it.add?'checked':''}>追加</label>
+    <span class="i-cond">${it.when?`納付方法 ${it.when.join('/')}`:(it.flag?(it.flag==='jigyosho'?'事業所税あり':'書面添付あり')+'の先のみ':'')}</span>
+    <button class="sbtn" data-act="up" data-id="${esc(t.id)}" data-iid="${it.iid}">↑</button>
+    <button class="sbtn" data-act="down" data-id="${esc(t.id)}" data-iid="${it.iid}">↓</button>
+    <button class="sbtn" data-act="saveitem" data-id="${esc(t.id)}" data-iid="${it.iid}">保存</button>
+    <button class="sbtn danger" data-act="delitem" data-id="${esc(t.id)}" data-iid="${it.iid}">削除</button>
+  </div>`;
+}
+
+/* オフセットを入力欄の文字にする（{m,d} は 1_31、数値はそのまま） */
+function offToStr(o){
+  if(o===null||o===undefined||o==='') return '';
+  if(typeof o==='object') return o.m+'_'+o.d;
+  return String(o);
+}
+/* 入力欄の文字をサーバーに渡す形にする */
+function strToOff(s){
+  s=String(s||'').trim();
+  if(!s) return '';
+  return s;   // サーバー側（Repo.parseOffset_）が数値と 月_日 の両方を読む
+}
+
+function openTmplEditor(id){
+  TMPL_EDIT = (TMPL_EDIT===id) ? null : id;
+  if(id===null){                       // 新規追加は空のカードを出す
+    const blank={id:'',name:'',cat:Object.keys(CAT)[0],anchor:'fiscal',start:'',due:'',memo:'',items:[]};
+    $('#v-tmpl').insertAdjacentHTML('afterbegin',
+      `<div class="card" data-tpl="">${tmplForm(blank)}</div>`);
+    bindTmplEvents();
+    return;
+  }
+  renderTmpl();
+}
+
+/* テンプレート画面のボタンをまとめて有効にする */
+function bindTmplEvents(){
+  $('#v-tmpl').querySelectorAll('button[data-act]').forEach(b=>{
+    b.onclick=()=>tmplAction(b.dataset.act, b.dataset.id, b.dataset.iid, b);
+  });
+}
+
+function tmplMsg(s){ const m=$('#tpl-msg'); if(m) m.textContent=s; }
+
+function tmplAction(act, id, iid, btn){
+  const t=TEMPLATES.find(x=>x.id===id);
+  if(act==='edit'){ openTmplEditor(id); return; }
+
+  if(act==='off'){
+    if(!confirm(`「${t.name}」を無効にします。\n\n・一覧から消え、今後この業務のタスクは作られません\n・これまでの記録は残ります\n\nよろしいですか？`)) return;
+    tmplMsg('保存中…');
+    google.script.run
+      .withSuccessHandler(()=>{ TEMPLATES=TEMPLATES.filter(x=>x.id!==id);
+        TMAP=Object.fromEntries(TEMPLATES.map(x=>[x.id,x])); tmplMsg('無効にしました'); renderTmpl(); })
+      .withFailureHandler(e=>tmplMsg('⚠ '+(e&&e.message||e)))
+      .apiSetTemplateActive(KEY, id, false, WHO());
+    return;
+  }
+
+  if(act==='savetpl'){
+    const form=btn.closest('.tform');
+    const tpl={
+      id: form.querySelector('#tf-id').value.trim(),
+      name: form.querySelector('#tf-name').value.trim(),
+      cat: form.querySelector('#tf-cat').value,
+      anchor: form.querySelector('#tf-anchor').value,
+      start: strToOff(form.querySelector('#tf-start').value),
+      due: strToOff(form.querySelector('#tf-due').value),
+      memo: form.querySelector('#tf-memo').value
+    };
+    form.querySelector('#tf-msg').textContent='保存中…';
+    google.script.run
+      .withSuccessHandler(()=>reloadTemplates('保存しました'))
+      .withFailureHandler(e=>{ form.querySelector('#tf-msg').textContent='⚠ '+(e&&e.message||e); })
+      .apiSaveTemplate(KEY, tpl, WHO());
+    return;
+  }
+
+  if(act==='additem'){
+    TMPL_EDIT=id;
+    tmplMsg('保存中…');
+    google.script.run
+      .withSuccessHandler(()=>reloadTemplates('項目を追加しました'))
+      .withFailureHandler(e=>tmplMsg('⚠ '+(e&&e.message||e)))
+      .apiSaveItem(KEY, id, {t:'（新しい項目）', off:0}, WHO());
+    return;
+  }
+
+  if(act==='saveitem'){
+    const row=btn.closest('.itemrow');
+    const item={
+      iid: Number(iid),
+      t: row.querySelector('.i-name').value.trim(),
+      off: strToOff(row.querySelector('.i-off').value),
+      star: row.querySelector('.i-star').checked,
+      add: row.querySelector('.i-add').checked
+    };
+    const cur=t.items.find(x=>x.iid===Number(iid))||{};
+    item.when=cur.when; item.tax=cur.tax; item.flag=cur.flag; item.ord=cur.ord;
+    tmplMsg('保存中…');
+    google.script.run
+      .withSuccessHandler(()=>reloadTemplates('項目を保存しました'))
+      .withFailureHandler(e=>tmplMsg('⚠ '+(e&&e.message||e)))
+      .apiSaveItem(KEY, id, item, WHO());
+    return;
+  }
+
+  if(act==='delitem'){
+    const it=t.items.find(x=>x.iid===Number(iid));
+    if(!confirm(`「${it?it.t:''}」を削除します。よろしいですか？\n\nこの項目に入っていたチェックも表示されなくなります。`)) return;
+    tmplMsg('保存中…');
+    google.script.run
+      .withSuccessHandler(()=>reloadTemplates('項目を削除しました'))
+      .withFailureHandler(e=>tmplMsg('⚠ '+(e&&e.message||e)))
+      .apiDeleteItem(KEY, id, Number(iid), WHO());
+    return;
+  }
+
+  if(act==='up'||act==='down'){
+    const ids=t.items.map(x=>x.iid);
+    const p=ids.indexOf(Number(iid));
+    const q=act==='up'?p-1:p+1;
+    if(p<0||q<0||q>=ids.length) return;
+    ids[p]=ids[q]; ids[q]=Number(iid);
+    tmplMsg('並べ替え中…');
+    google.script.run
+      .withSuccessHandler(()=>reloadTemplates('並べ替えました'))
+      .withFailureHandler(e=>tmplMsg('⚠ '+(e&&e.message||e)))
+      .apiReorderItems(KEY, id, ids, WHO());
+    return;
+  }
+}
+
+/* 変更後のテンプレートを取り直して画面を作り直す（全体の再読み込みはしない） */
+function reloadTemplates(msg){
+  google.script.run
+    .withSuccessHandler(list=>{
+      TEMPLATES=list||[];
+      TMAP=Object.fromEntries(TEMPLATES.map(t=>[t.id,t]));
+      /* チェック項目が変わったので、タスクの項目も組み立て直す */
+      TASKS.forEach(t=>{ const tpl=TMAP[t.tid]; if(tpl) t.items=itemsForClient(tpl, CMAP[t.cid]||{}, t.due); });
+      renderTmpl(); tmplMsg(msg||'保存しました');
+      renderDash();
+    })
+    .withFailureHandler(e=>tmplMsg('⚠ 取り直せませんでした: '+(e&&e.message||e)))
+    .apiTemplates(KEY);
 }
 
 /* ---- 一覧入力（行=顧問先 × 列=工程 のマトリクス） ---- */
@@ -757,9 +1097,10 @@ function renderGrid(){
     const st=ST[status(t)];
     const ds=dateArr(t);
     const cells=tpl.items.map((it,ti)=>{
-      const pos=t.items.findIndex(x=>x.i===ti);
-      if(pos<0) return `<td class="gc na">―</td>`;
-      const dt=t.items[pos].date;
+      const vis=t.items.find(x=>x.i===ti);
+      if(!vis) return `<td class="gc na">―</td>`;
+      const pos=vis.bi;                       // 進捗ビット列の桁（項目IDで固定）
+      const dt=vis.date;
       const dv=ds[pos] ? dispDate(ds[pos]) : (done.has(pos)?'✓':'');
       return `<td class="gc"><input type="text" class="gdate ${dv?'on':''}" data-t="${esc(t.id)}" data-i="${pos}" data-r="${r}" data-c="${ti}"
         value="${esc(dv)}" data-prev="${esc(dv)}" autocomplete="off" spellcheck="false"
@@ -876,7 +1217,7 @@ function commitGdate(el){
   }
   if(raw==='✓') { el.dataset.prev='✓'; return; }   // 日付なしの旧チェックはそのまま
 
-  const iso=parseUserDate(raw, (t.items[ix]||{}).date);
+  const iso=parseUserDate(raw, (t.items.find(x=>x.bi===ix)||{}).date);
   if(!iso){                                    // 読めない → 元に戻して赤枠
     el.value=prev; el.classList.add('err');
     setTimeout(()=>el.classList.remove('err'), 1200);
@@ -971,7 +1312,7 @@ function openTaskModal(taskId){
   const st=ST[status(t)], p=Math.round(prog(t)*100);
   const done=state.done[t.id]||new Set();
   const ds=dateArr(t);
-  const rows=t.items.map((it,ix)=>`
+  const rows=t.items.map(it=>{ const ix=it.bi; return `
     <label class="mrow">
       <input type="checkbox" data-t="${esc(t.id)}" data-i="${ix}" ${done.has(ix)?'checked':''}>
       <span class="mtx">${it.star?'<span class="star">★</span> ':''}${esc(it.t.replace(/^★ /,''))}
@@ -979,7 +1320,7 @@ function openTaskModal(taskId){
         ${it.add?'<span class="addb">追加</span>':''}</span>
       <span class="md">目標 ${md(it.date)}</span>
       <input type="date" class="mdate" data-t="${esc(t.id)}" data-i="${ix}" value="${toISO(ds[ix],t)}" title="実施日（チェックすると自動で入ります。手で直せます）">
-    </label>`).join('');
+    </label>`; }).join('');
   const workers=new Set(String(t.workers||'').split(',').map(s=>s.trim()).filter(String));
   const chips=staffList().map(n=>
     `<span class="wchip ${workers.has(n)?'on':''}" data-w="${esc(n)}">${esc(n)}</span>`).join('');
@@ -1057,6 +1398,7 @@ document.addEventListener('click',e=>{
 /* ---- イベント ---- */
 document.addEventListener('change',e=>{
   const cb=e.target.closest('input[type=checkbox][data-t]'); if(!cb) return;
+  if(cb.closest('.svct')) return;          // 受託業務の表は別の処理で扱う
   const id=cb.dataset.t, ix=+cb.dataset.i, val=cb.checked;
   (state.done[id] ||= new Set());
   val ? state.done[id].add(ix) : state.done[id].delete(ix);
@@ -1076,6 +1418,7 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   $('#v-'+b.dataset.v).classList.add('on');
   if(b.dataset.v==='gantt') renderGantt();
   if(b.dataset.v==='grid') renderGrid();
+  if(b.dataset.v==='svc') renderSvc();
 });
 $('#theme').onclick=()=>{
   const r=document.documentElement;
@@ -1127,7 +1470,10 @@ function itemsForClient(tpl, client, base){
       d = add(base, it.off);
     }
     if(!(d instanceof Date) || isNaN(d.getTime())) return;
-    out.push({i, t:it.t, star:!!it.star, add:!!it.add, when:it.when, flag:it.flag, date:d,
+    /* bi ＝ 進捗ビット列の何桁目か。項目ID で決まるので、項目を足したり
+       並べ替えたりしても、既に入っているチェックがズレない。 */
+    const iid = it.iid || (i+1);
+    out.push({i, iid, bi: iid-1, t:it.t, star:!!it.star, add:!!it.add, when:it.when, flag:it.flag, date:d,
       cond: it.when ? `納付方法 ${it.when.join('/')}` : (it.flag ? '対象の顧問先のみ' : null)});
   });
   return out.sort((a,b)=>a.date-b.date);
