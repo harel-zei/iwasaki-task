@@ -29,15 +29,15 @@ try{var __t=localStorage.getItem('harel_theme');if(__t)document.documentElement.
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--plane);color:var(--ink-1);
-  font-family:system-ui,-apple-system,"Segoe UI","Hiragino Sans","Noto Sans JP",sans-serif;font-size:13px;line-height:1.6}
+  font-family:system-ui,-apple-system,"Segoe UI","Hiragino Sans","Noto Sans JP",sans-serif;font-size:14.5px;line-height:1.6}
 h1,h2,h3{margin:0;font-weight:700}
 button{font-family:inherit;font-size:inherit;cursor:pointer}
 
 /* ---------- header ---------- */
 header{position:sticky;top:0;z-index:30;background:var(--surface-1);border-bottom:1px solid var(--ring);
   padding:10px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-.brand{font-size:15px;font-weight:700;letter-spacing:.02em}
-.brand small{display:block;font-size:10px;font-weight:400;color:var(--ink-3);letter-spacing:.06em}
+.brand{font-size:16.5px;font-weight:700;letter-spacing:.02em}
+.brand small{display:block;font-size:11.5px;font-weight:400;color:var(--ink-3);letter-spacing:.06em}
 nav{display:flex;gap:2px;margin-left:8px}
 nav button{background:transparent;border:0;padding:7px 14px;border-radius:7px;color:var(--ink-2);font-weight:600}
 nav button:hover{background:var(--plane)}
@@ -50,168 +50,168 @@ main{padding:18px;max-width:1500px;margin:0 auto}
 
 /* ---------- cards ---------- */
 .card{background:var(--surface-1);border:1px solid var(--ring);border-radius:12px;padding:16px;margin-bottom:16px}
-.card>h2{font-size:13px;letter-spacing:.04em;color:var(--ink-2);margin-bottom:2px}
-.card>.sub{font-size:11px;color:var(--ink-3);margin-bottom:14px}
+.card>h2{font-size:14.5px;letter-spacing:.04em;color:var(--ink-2);margin-bottom:2px}
+.card>.sub{font-size:12.5px;color:var(--ink-3);margin-bottom:14px}
 
 /* ---------- stat tiles ---------- */
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
 .tile{background:var(--surface-1);border:1px solid var(--ring);border-radius:12px;padding:14px 16px}
-.tile .lab{font-size:11px;color:var(--ink-2);display:flex;align-items:center;gap:6px}
+.tile .lab{font-size:12.5px;color:var(--ink-2);display:flex;align-items:center;gap:6px}
 .tile .val{font-size:30px;font-weight:700;line-height:1.15;margin-top:4px}
-.tile .note{font-size:11px;color:var(--ink-3)}
+.tile .note{font-size:12.5px;color:var(--ink-3)}
 .dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
 
 /* ---------- bars ---------- */
 .progrow{display:grid;grid-template-columns:170px 1fr 82px;gap:10px;align-items:center;padding:3px 0}
-.progrow .nm{font-size:12px;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.progrow .nm{font-size:13.5px;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .track{height:14px;background:var(--grid);border-radius:4px;overflow:hidden;position:relative}
 .fill{height:100%;border-radius:4px}
-.progrow .pct{font-size:11px;color:var(--ink-2);text-align:right;font-variant-numeric:tabular-nums}
+.progrow .pct{font-size:12.5px;color:var(--ink-2);text-align:right;font-variant-numeric:tabular-nums}
 
 /* ---------- tables ---------- */
-table{width:100%;border-collapse:collapse;font-size:12px}
-th{text-align:left;font-size:11px;color:var(--ink-3);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--axis);white-space:nowrap}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;font-size:12.5px;color:var(--ink-3);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--axis);white-space:nowrap}
 td{padding:7px 8px;border-bottom:1px solid var(--grid);vertical-align:middle}
 tbody tr:hover{background:var(--plane)}
 .num{font-variant-numeric:tabular-nums;white-space:nowrap}
 
 /* ---------- badges ---------- */
-.badge{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
 .b-crit{background:rgba(208,59,59,.14);color:var(--critical)}
 .b-warn{background:rgba(250,178,25,.20);color:#8a5b00}
 .b-good{background:rgba(12,163,12,.14);color:var(--good-ink)}
 .b-idle{background:var(--grid);color:var(--ink-2)}
 :root[data-theme="dark"] .b-warn{color:var(--warning)}
-.cat{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-2);white-space:nowrap}
+.cat{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;color:var(--ink-2);white-space:nowrap}
 
 /* ---------- gantt ---------- */
 .gwrap{display:grid;grid-template-columns:290px 1fr;border:1px solid var(--ring);border-radius:10px;overflow:hidden;background:var(--surface-1)}
 .gleft{border-right:1px solid var(--axis);overflow:hidden}
 .gright{overflow-x:auto}
 .ghead{height:44px;border-bottom:1px solid var(--axis);position:relative;background:var(--surface-1)}
-.gleft .ghead{display:flex;align-items:flex-end;padding:0 12px 8px;font-size:11px;color:var(--ink-3)}
-.gmon{position:absolute;top:0;height:44px;border-left:1px solid var(--grid);font-size:10.5px;color:var(--ink-3);padding:6px 0 0 6px;white-space:nowrap}
+.gleft .ghead{display:flex;align-items:flex-end;padding:0 12px 8px;font-size:12.5px;color:var(--ink-3)}
+.gmon{position:absolute;top:0;height:44px;border-left:1px solid var(--grid);font-size:12px;color:var(--ink-3);padding:6px 0 0 6px;white-space:nowrap}
 .grow{height:30px;border-bottom:1px solid var(--grid);position:relative}
-.gleft .grow{display:flex;align-items:center;gap:7px;padding:0 12px;font-size:11.5px;color:var(--ink-2);overflow:hidden}
+.gleft .grow{display:flex;align-items:center;gap:7px;padding:0 12px;font-size:13px;color:var(--ink-2);overflow:hidden}
 .gleft .grow span.t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .gclient{height:28px;background:var(--plane);border-bottom:1px solid var(--axis);display:flex;align-items:center;padding:0 12px;
-  font-size:11.5px;font-weight:700;color:var(--ink-1);gap:8px;position:relative}
+  font-size:13px;font-weight:700;color:var(--ink-1);gap:8px;position:relative}
 .gbar{position:absolute;top:7px;height:16px;border-radius:4px;overflow:hidden;box-shadow:0 0 0 2px var(--surface-1)}
 .gbar .gp{height:100%;background:rgba(255,255,255,.55)}
 :root[data-theme="dark"] .gbar .gp{background:rgba(0,0,0,.42)}
 .gdue{position:absolute;top:4px;height:22px;width:2px;background:var(--critical);border-radius:1px}
 .gtoday{position:absolute;top:0;bottom:0;width:2px;background:var(--series-2);z-index:5;opacity:.85}
-.glabel{position:absolute;top:9px;font-size:10px;color:var(--ink-3);white-space:nowrap}
-.legend{display:flex;gap:14px;flex-wrap:wrap;margin:10px 2px 0;font-size:11px;color:var(--ink-2)}
+.glabel{position:absolute;top:9px;font-size:11.5px;color:var(--ink-3);white-space:nowrap}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin:10px 2px 0;font-size:12.5px;color:var(--ink-2)}
 
 /* ---------- karte ---------- */
 .kgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px 22px}
-.kf{border-bottom:1px dotted var(--grid);padding:5px 0;display:flex;gap:10px;font-size:12px}
-.kf b{flex:none;width:118px;color:var(--ink-3);font-weight:600;font-size:11px}
+.kf{border-bottom:1px dotted var(--grid);padding:5px 0;display:flex;gap:10px;font-size:13.5px}
+.kf b{flex:none;width:118px;color:var(--ink-3);font-weight:600;font-size:12.5px}
 .kf span{color:var(--ink-1)}
-select,input[type=text]{font-family:inherit;font-size:12px;padding:5px 8px;border:1px solid var(--axis);
+select,input[type=text]{font-family:inherit;font-size:13.5px;padding:5px 8px;border:1px solid var(--axis);
   border-radius:6px;background:var(--surface-1);color:var(--ink-1)}
 
 /* ---------- task modal（ガントから開く小窓） ---------- */
 .mov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:90;display:flex;align-items:center;justify-content:center;padding:20px}
 .modal{background:var(--surface-1);border:1px solid var(--ring);border-radius:12px;width:min(860px,96vw);max-height:92vh;display:flex;flex-direction:column;box-shadow:0 18px 50px rgba(0,0,0,.35)}
 .mhead{display:flex;align-items:flex-start;gap:10px;padding:14px 16px;border-bottom:1px solid var(--ring)}
-.mhead .mt{font-weight:700;font-size:16px}
-.mhead .ms{font-size:12.5px;color:var(--ink-3);margin-top:4px;line-height:1.7}
-.mclose{margin-left:auto;background:none;border:1px solid var(--ring);border-radius:8px;color:var(--ink-2);cursor:pointer;font-size:15px;line-height:1;padding:8px 12px}
+.mhead .mt{font-weight:700;font-size:17px}
+.mhead .ms{font-size:14px;color:var(--ink-3);margin-top:4px;line-height:1.7}
+.mclose{margin-left:auto;background:none;border:1px solid var(--ring);border-radius:8px;color:var(--ink-2);cursor:pointer;font-size:16.5px;line-height:1;padding:8px 12px}
 .mbody{overflow-y:auto;padding:12px 16px;flex:1}
-.mrow{display:flex;align-items:center;gap:10px;padding:10px 2px;border-bottom:1px dashed var(--ring);font-size:14px;flex-wrap:wrap}
-.mrow input[type=checkbox]{width:19px;height:19px;flex:none;accent-color:var(--series-1)}
+.mrow{display:flex;align-items:center;gap:10px;padding:10px 2px;border-bottom:1px dashed var(--ring);font-size:15.5px;flex-wrap:wrap}
+.mrow input[type=checkbox]{width:21px;height:21px;flex:none;accent-color:var(--series-1)}
 .mrow .mtx{flex:1;min-width:180px}
-.mrow .md{font-size:11.5px;color:var(--ink-3);white-space:nowrap}
-.mdate{font-family:inherit;font-size:13px;padding:5px 7px;border:1px solid var(--axis);border-radius:6px;background:var(--plane);color:var(--ink-1);flex:none}
+.mrow .md{font-size:13px;color:var(--ink-3);white-space:nowrap}
+.mdate{font-family:inherit;font-size:14.5px;padding:5px 7px;border:1px solid var(--axis);border-radius:6px;background:var(--plane);color:var(--ink-1);flex:none}
 .mworkers{padding:10px 16px;border-top:1px solid var(--ring)}
-.mworkers .wlab{font-size:12px;color:var(--ink-2);margin-bottom:7px}
+.mworkers .wlab{font-size:13.5px;color:var(--ink-2);margin-bottom:7px}
 .wchips{display:flex;gap:7px;flex-wrap:wrap}
-.wchip{display:inline-flex;align-items:center;padding:7px 13px;border:1px solid var(--axis);border-radius:999px;font-size:13px;color:var(--ink-2);cursor:pointer;user-select:none}
+.wchip{display:inline-flex;align-items:center;padding:7px 13px;border:1px solid var(--axis);border-radius:999px;font-size:14.5px;color:var(--ink-2);cursor:pointer;user-select:none}
 .wchip.on{background:var(--series-1);border-color:var(--series-1);color:#fff;font-weight:700}
 .mmemo{padding:12px 16px;border-top:1px solid var(--ring)}
-.mmemo textarea{width:100%;min-height:72px;background:var(--plane);color:var(--ink-1);border:1px solid var(--ring);border-radius:8px;padding:10px;font-size:14px;font-family:inherit;resize:vertical}
+.mmemo textarea{width:100%;min-height:72px;background:var(--plane);color:var(--ink-1);border:1px solid var(--ring);border-radius:8px;padding:10px;font-size:15.5px;font-family:inherit;resize:vertical}
 .mmemo .mbar{display:flex;align-items:center;gap:10px;margin-top:8px}
-.mmemo button{background:var(--series-1);color:#fff;border:none;border-radius:8px;padding:9px 18px;cursor:pointer;font-size:13.5px}
-.mmemo .msg{font-size:11px;color:var(--ink-3)}
+.mmemo button{background:var(--series-1);color:#fff;border:none;border-radius:8px;padding:9px 18px;cursor:pointer;font-size:15px}
+.mmemo .msg{font-size:12.5px;color:var(--ink-3)}
 /* スマホでは小窓をほぼ全画面にする */
 @media (max-width:640px){
   .mov{padding:0;align-items:stretch}
   .modal{width:100vw;max-height:none;height:100dvh;border-radius:0;border:0}
-  .mhead .mt{font-size:15px}
-  .mrow{font-size:14.5px}
+  .mhead .mt{font-size:16.5px}
+  .mrow{font-size:16px}
 }
 
 /* ---------- 一覧入力（マトリクス） ---------- */
 .grid-wrap{overflow:auto;max-height:72vh;border:1px solid var(--ring);border-radius:10px;background:var(--surface-1)}
-.gridt{border-collapse:separate;border-spacing:0;font-size:12px}
+.gridt{border-collapse:separate;border-spacing:0;font-size:13.5px}
 /* 見出しは縦書き（1文字の幅で折り返して縦に積む。端末による字の重なりを避けるため） */
-.gridt th.gh{height:190px;width:32px;min-width:32px;padding:8px 0;vertical-align:top;
+.gridt th.gh{height:252px;width:36px;min-width:36px;padding:8px 0;vertical-align:top;
   border-bottom:1px solid var(--ring);border-left:1px solid var(--ring);background:var(--plane);position:sticky;top:0;z-index:2}
-.gridt th.gh div{width:1em;margin:0 auto;font-size:12px;font-weight:700;color:var(--ink-1);
+.gridt th.gh div{width:1em;margin:0 auto;font-size:13.5px;font-weight:700;color:var(--ink-1);
   line-height:1.14;text-align:center;word-break:break-all;white-space:normal;
-  max-height:172px;overflow:hidden}
+  max-height:234px;overflow:hidden}
 .gridt th.gh0{position:sticky;top:0;left:0;z-index:4;background:var(--plane);border-bottom:1px solid var(--ring);text-align:left;padding:6px 10px;writing-mode:horizontal-tb}
 .gridt td.gc{border-left:1px solid var(--ring);border-bottom:1px dashed var(--ring);text-align:center;padding:3px 5px;min-width:26px}
-.gridt td.gc.na{color:var(--ink-3);font-size:10px}
-.gridt td.gname{position:sticky;left:0;background:var(--surface-1);z-index:1;border-bottom:1px dashed var(--ring);padding:5px 10px;min-width:230px;max-width:270px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.gridt td.gname .code{color:var(--ink-3);font-size:10.5px;margin-right:4px}
-.gridt td.gname .sub2{font-size:10px;color:var(--ink-3);margin-top:1px}
-.gridt input[type=checkbox]{width:15px;height:15px;cursor:pointer}
+.gridt td.gc.na{color:var(--ink-3);font-size:11.5px}
+.gridt td.gname{position:sticky;left:0;background:var(--surface-1);z-index:1;border-bottom:1px dashed var(--ring);padding:6px 10px;min-width:250px;max-width:300px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gridt td.gname .code{color:var(--ink-3);font-size:12px;margin-right:4px}
+.gridt td.gname .sub2{font-size:11.5px;color:var(--ink-3);margin-top:1px}
+.gridt input[type=checkbox]{width:17px;height:17px;cursor:pointer}
 .gridt input[type=checkbox]:focus{outline:2px solid var(--series-1);outline-offset:1px}
 /* 日付を直接打つセル（旧管理表の「5/27」方式） */
-.gc input.gdate{width:56px;padding:4px 2px;font-size:12px;text-align:center;background:transparent;
+.gc input.gdate{width:66px;padding:4px 2px;font-size:13.5px;text-align:center;background:transparent;
   border:1px solid transparent;border-radius:5px;color:var(--ink-3);font-family:inherit;font-variant-numeric:tabular-nums}
 .gc input.gdate:focus{border-color:var(--series-1);background:var(--plane);outline:none;color:var(--ink-1)}
 .gc input.gdate.on{color:var(--good-ink);font-weight:700}
 .gc input.gdate.err{border-color:var(--critical)}
 /* 一覧入力の作業者セル */
 .gridt td.gworker{border-left:1px solid var(--ring);border-bottom:1px dashed var(--ring);padding:4px 8px;
-  min-width:76px;max-width:130px;font-size:11px;color:var(--ink-2);cursor:pointer;white-space:normal;line-height:1.4}
+  min-width:76px;max-width:130px;font-size:12.5px;color:var(--ink-2);cursor:pointer;white-space:normal;line-height:1.4}
 .gridt td.gworker:hover{background:var(--plane)}
 .gridt td.gworker .none{color:var(--ink-3)}
 .gridt th.ghw{position:sticky;top:0;z-index:2;background:var(--plane);border-bottom:1px solid var(--ring);
-  border-left:1px solid var(--ring);font-size:10.5px;color:var(--ink-2);padding:6px 8px;writing-mode:horizontal-tb;vertical-align:bottom}
+  border-left:1px solid var(--ring);font-size:12px;color:var(--ink-2);padding:6px 8px;writing-mode:horizontal-tb;vertical-align:bottom}
 /* 作業者の直接選択（セルの下に開く小さなリスト。画面遷移も小窓もなし） */
 .wpop{position:absolute;z-index:95;background:var(--surface-1);border:1px solid var(--axis);border-radius:10px;
   padding:10px;box-shadow:0 10px 30px rgba(0,0,0,.35);max-width:360px}
-.wpop .wlab{font-size:11px;color:var(--ink-3);margin-bottom:7px}
+.wpop .wlab{font-size:12.5px;color:var(--ink-3);margin-bottom:7px}
 
 /* ---------- 業務テンプレートの編集 ---------- */
-.pbtn{background:var(--series-1);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:12.5px}
-.sbtn{background:transparent;border:1px solid var(--axis);border-radius:7px;color:var(--ink-2);padding:5px 10px;font-size:11.5px}
+.pbtn{background:var(--series-1);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:14px}
+.sbtn{background:transparent;border:1px solid var(--axis);border-radius:7px;color:var(--ink-2);padding:5px 10px;font-size:13px}
 .sbtn:hover{background:var(--plane);color:var(--ink-1)}
 .sbtn.danger{border-color:rgba(208,59,59,.5);color:var(--critical)}
 .tform{border:1px solid var(--series-1);border-radius:10px;padding:12px;margin-bottom:12px;background:var(--plane)}
 .tform .frow{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:8px}
-.tform label{display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--ink-3)}
+.tform label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--ink-3)}
 .tform label.wide{flex:1;min-width:260px}
-.tform input,.tform select{font-family:inherit;font-size:12.5px;padding:6px 8px;border:1px solid var(--axis);
+.tform input,.tform select{font-family:inherit;font-size:14px;padding:6px 8px;border:1px solid var(--axis);
   border-radius:6px;background:var(--surface-1);color:var(--ink-1)}
 .tform label.wide input{width:100%}
-.tform .fhelp{font-size:11px;color:var(--ink-3);margin-bottom:8px}
-.itemrow{display:flex;gap:7px;align-items:center;padding:5px 0;border-bottom:1px dotted var(--grid);font-size:12px;flex-wrap:wrap}
-.itemrow .ord{width:22px;text-align:right;color:var(--ink-3);font-size:11px}
-.itemrow .i-name{flex:1;min-width:220px;font-family:inherit;font-size:12.5px;padding:5px 8px;
+.tform .fhelp{font-size:12.5px;color:var(--ink-3);margin-bottom:8px}
+.itemrow{display:flex;gap:7px;align-items:center;padding:5px 0;border-bottom:1px dotted var(--grid);font-size:13.5px;flex-wrap:wrap}
+.itemrow .ord{width:22px;text-align:right;color:var(--ink-3);font-size:12.5px}
+.itemrow .i-name{flex:1;min-width:220px;font-family:inherit;font-size:14px;padding:5px 8px;
   border:1px solid var(--axis);border-radius:6px;background:var(--surface-1);color:var(--ink-1)}
-.itemrow .i-off{width:74px;font-family:inherit;font-size:12.5px;padding:5px 6px;text-align:center;
+.itemrow .i-off{width:74px;font-family:inherit;font-size:14px;padding:5px 6px;text-align:center;
   border:1px solid var(--axis);border-radius:6px;background:var(--surface-1);color:var(--ink-1)}
-.itemrow .i-chk{display:flex;align-items:center;gap:3px;font-size:11px;color:var(--ink-2)}
-.itemrow .i-cond{font-size:10.5px;color:var(--series-1);min-width:110px}
+.itemrow .i-chk{display:flex;align-items:center;gap:3px;font-size:12.5px;color:var(--ink-2)}
+.itemrow .i-cond{font-size:12px;color:var(--series-1);min-width:110px}
 
 /* ---------- 受託業務（顧問先 × 業務） ---------- */
 .svc-wrap{overflow:auto;max-height:74vh;border:1px solid var(--ring);border-radius:10px;background:var(--surface-1)}
-.svct{border-collapse:separate;border-spacing:0;font-size:12px}
+.svct{border-collapse:separate;border-spacing:0;font-size:13.5px}
 /* 見出しは縦書き（文字は起こしたまま上から下へ）。
    CSS の writing-mode は端末のフォントによって字が重なることがあるため、
    「1文字の幅で折り返す」方法で縦に積んでいる。どの端末でも同じに見える。 */
-.svct th.sv{height:200px;width:34px;min-width:34px;padding:8px 0 10px;position:relative;vertical-align:top;
+.svct th.sv{height:252px;width:38px;min-width:38px;padding:8px 0 10px;position:relative;vertical-align:top;
   background:var(--plane);position:sticky;top:0;z-index:2;border-left:1px solid var(--ring);border-bottom:1px solid var(--ring)}
 .svct th.sv:nth-child(even){background:var(--surface-1)}
-.svct th.sv div{width:1em;margin:0 auto;font-size:12.5px;font-weight:700;color:var(--ink-1);
+.svct th.sv div{width:1em;margin:0 auto;font-size:14px;font-weight:700;color:var(--ink-1);
   line-height:1.14;text-align:center;word-break:break-all;white-space:normal;
-  max-height:180px;overflow:hidden}
+  max-height:232px;overflow:hidden}
 .svct th.sv i.cbar{position:absolute;left:0;right:0;bottom:0;height:3px}   /* 区分の色 */
 /* 縦書きで90度回す文字（長音・カッコなど） */
 .vrot{display:inline-block;transform:rotate(90deg)}
@@ -219,11 +219,11 @@ select,input[type=text]{font-family:inherit;font-size:12px;padding:5px 8px;borde
 .svct td.svc:nth-child(even){background:rgba(127,127,127,.045)}
 .svct th.sv0{position:sticky;top:0;left:0;z-index:4;background:var(--plane);text-align:left;padding:6px 10px;
   writing-mode:horizontal-tb;border-bottom:1px solid var(--ring)}
-.svct td.svname{position:sticky;left:0;background:var(--surface-1);z-index:1;padding:5px 10px;min-width:230px;
+.svct td.svname{position:sticky;left:0;background:var(--surface-1);z-index:1;padding:6px 10px;min-width:250px;
   border-bottom:1px dashed var(--ring);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.svct td.svname .code{color:var(--ink-3);font-size:10.5px;margin-right:4px}
+.svct td.svname .code{color:var(--ink-3);font-size:12px;margin-right:4px}
 .svct td.svc{text-align:center;padding:3px 5px;border-left:1px solid var(--ring);border-bottom:1px dashed var(--ring);min-width:28px}
-.svct td.svc input{width:16px;height:16px;cursor:pointer;accent-color:var(--series-1)}
+.svct td.svc input{width:18px;height:18px;cursor:pointer;accent-color:var(--series-1)}
 .svct td.svc.busy{opacity:.4}
 
 /* ---------- task cards / checklist ---------- */
@@ -231,40 +231,40 @@ select,input[type=text]{font-family:inherit;font-size:12px;padding:5px 8px;borde
 .thead{display:grid;grid-template-columns:12px 1fr 116px 96px 92px 74px 22px;gap:10px;align-items:center;
   padding:10px 13px;cursor:pointer}
 .thead:hover{background:var(--plane)}
-.thead .tt{font-weight:700;font-size:12.5px}
-.thead .tm{font-size:10.5px;color:var(--ink-3);font-weight:400}
+.thead .tt{font-weight:700;font-size:14px}
+.thead .tm{font-size:12px;color:var(--ink-3);font-weight:400}
 .tbody{display:none;padding:2px 13px 12px 34px;border-top:1px solid var(--grid)}
 .tcard.open .tbody{display:block}
-.chk{display:flex;gap:9px;align-items:flex-start;padding:5px 0;border-bottom:1px dotted var(--grid);font-size:12px}
+.chk{display:flex;gap:9px;align-items:flex-start;padding:5px 0;border-bottom:1px dotted var(--grid);font-size:13.5px}
 .chk:last-child{border-bottom:0}
-.chk input{margin:3px 0 0;width:15px;height:15px;accent-color:var(--series-1);flex:none;cursor:pointer}
+.chk input{margin:3px 0 0;width:17px;height:17px;accent-color:var(--series-1);flex:none;cursor:pointer}
 .chk .ct{flex:1}
 .chk.done .ct{color:var(--ink-3);text-decoration:line-through}
-.chk .cd{font-size:10.5px;color:var(--ink-3);font-variant-numeric:tabular-nums;flex:none;width:52px;text-align:right}
-.chk .cond{font-size:10px;background:rgba(42,120,214,.12);color:var(--series-1);padding:1px 6px;border-radius:4px;margin-left:6px;white-space:nowrap}
+.chk .cd{font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums;flex:none;width:52px;text-align:right}
+.chk .cond{font-size:11.5px;background:rgba(42,120,214,.12);color:var(--series-1);padding:1px 6px;border-radius:4px;margin-left:6px;white-space:nowrap}
 .chk .star{color:var(--critical);font-weight:700}
-.caret{color:var(--ink-3);font-size:11px}
+.caret{color:var(--ink-3);font-size:12.5px}
 .tcard.open .caret{transform:rotate(90deg)}
 .caret{display:inline-block;transition:transform .12s}
-.hint{font-size:11px;color:var(--ink-3);background:var(--plane);border-left:3px solid var(--series-1);
+.hint{font-size:12.5px;color:var(--ink-3);background:var(--plane);border-left:3px solid var(--series-1);
   padding:8px 12px;border-radius:0 6px 6px 0;margin-bottom:14px}
-.pill{font-size:10.5px;border:1px solid var(--axis);border-radius:999px;padding:2px 9px;color:var(--ink-2)}
-.tmplitem{font-size:12px;padding:4px 0 4px 18px;position:relative;border-bottom:1px dotted var(--grid)}
+.pill{font-size:12px;border:1px solid var(--axis);border-radius:999px;padding:2px 9px;color:var(--ink-2)}
+.tmplitem{font-size:13.5px;padding:4px 0 4px 18px;position:relative;border-bottom:1px dotted var(--grid)}
 .tmplitem:before{content:"□";position:absolute;left:0;color:var(--ink-3)}
-.newb{display:inline-block;font-size:9.5px;font-weight:700;background:var(--series-5);color:#fff;
+.newb{display:inline-block;font-size:11px;font-weight:700;background:var(--series-5);color:#fff;
   border-radius:4px;padding:1px 5px;line-height:1.5;vertical-align:1px}
-.addb{display:inline-block;font-size:9.5px;font-weight:700;background:rgba(235,104,52,.16);color:#a83c10;
+.addb{display:inline-block;font-size:11px;font-weight:700;background:rgba(235,104,52,.16);color:#a83c10;
   border-radius:4px;padding:1px 6px;margin-left:6px;white-space:nowrap}
 :root[data-theme="dark"] .addb{color:var(--series-2)}
-.warn{font-size:10px;font-weight:700;color:#8a5b00;background:rgba(250,178,25,.22);border-radius:4px;padding:1px 5px}
+.warn{font-size:11.5px;font-weight:700;color:#8a5b00;background:rgba(250,178,25,.22);border-radius:4px;padding:1px 5px}
 :root[data-theme="dark"] .warn{color:var(--warning)}
 .tmplitem{padding-right:8px}
 /* ガントのフィルタバー */
 .fbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:11px 14px;margin-bottom:12px}
-.fbar .cnt{font-size:11px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.fbar .cnt{font-size:12.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
 .fbar .ghost{margin-left:auto}
 .seg{display:inline-flex;border:1px solid var(--axis);border-radius:8px;overflow:hidden}
-.seg button{background:var(--surface-1);border:0;padding:6px 15px;color:var(--ink-2);font-weight:700;font-size:12px}
+.seg button{background:var(--surface-1);border:0;padding:6px 15px;color:var(--ink-2);font-weight:700;font-size:13.5px}
 .seg button+button{border-left:1px solid var(--axis)}
 .seg button:hover{background:var(--plane)}
 .seg button[aria-current="true"]{background:var(--series-1);color:#fff}
@@ -274,13 +274,13 @@ select,input[type=text]{font-family:inherit;font-size:12px;padding:5px 8px;borde
 .gleft .grow>*,.gleft .gclient>*{flex:none}
 .gleft .grow .t,.gleft .gclient .nm{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .gleft .gclient .nm{font-weight:700}
-.stat{margin-left:auto;display:flex;align-items:center;gap:4px;font-size:10px;color:var(--ink-3);
+.stat{margin-left:auto;display:flex;align-items:center;gap:4px;font-size:11.5px;color:var(--ink-3);
   font-variant-numeric:tabular-nums;flex:none!important}
 .stat b{font-weight:700;color:var(--ink-2)}
-.ct2{color:var(--ink-3);font-size:10px}
-.grow .pill,.gclient .pill{font-size:9.5px;padding:1px 6px}
+.ct2{color:var(--ink-3);font-size:11.5px}
+.grow .pill,.gclient .pill{font-size:11px;padding:1px 6px}
 .badge{padding:1px 6px}
-.code{color:var(--ink-3);font-size:10px;font-variant-numeric:tabular-nums}
+.code{color:var(--ink-3);font-size:11.5px;font-variant-numeric:tabular-nums}
 .gfy{position:absolute;top:0;bottom:0;width:2px;background:var(--series-1);opacity:.42}
 @media print{
   header,.fbar,.hint,nav,.legend{display:none!important}
@@ -487,9 +487,9 @@ function renderDash(){
     const st=status(t), p=Math.round(prog(t)*100);
     const nxt=t.items.filter(it=>!(state.done[t.id]&&state.done[t.id].has(it.bi)))[0];
     const dd=Math.round((t.due-today)/DAY);
-    return `<tr><td><span style="color:var(--ink-3);font-size:10.5px">${t.cid}</span> ${esc(t.cname)}</td>
+    return `<tr><td><span style="color:var(--ink-3);font-size:12px">${t.cid}</span> ${esc(t.cname)}</td>
       <td><span class="cat"><i class="dot" style="background:${CAT[t.cat].color}"></i>${t.isNew?'<span class="newb">新</span> ':''}${esc(t.name)}</span>
-          <div style="font-size:10.5px;color:var(--ink-3)">${esc(t.period)}</div></td>
+          <div style="font-size:12px;color:var(--ink-3)">${esc(t.period)}</div></td>
       <td style="max-width:300px">${nxt?esc(nxt.t.replace(/^★ /,'')):'—'}</td>
       <td class="num">${d2s(t.due)}</td>
       <td class="num" style="color:${dd<0?'var(--critical)':dd<=3?'var(--serious)':'var(--ink-2)'}">${dd<0?`${-dd}日超過`:`残り${dd}日`}</td>
@@ -707,9 +707,9 @@ function renderKarte(){
       <div class="thead"><i class="dot" style="background:${CAT[t.cat].color}"></i>
         <div><div class="tt">${t.isNew?'<span class="newb">新</span> ':''}${esc(t.name)}</div>
              <div class="tm">${esc(t.period)}｜${esc(CAT[t.cat].label)}</div></div>
-        <div class="num" style="font-size:11px;color:var(--ink-2)">期日 ${d2s(t.due)}</div>
+        <div class="num" style="font-size:12.5px;color:var(--ink-2)">期日 ${d2s(t.due)}</div>
         <div class="track"><div class="fill" style="width:${p}%;background:${CAT[t.cat].color}"></div></div>
-        <div class="num" style="font-size:11px">${dset.size}/${t.items.length} 項目</div>
+        <div class="num" style="font-size:12.5px">${dset.size}/${t.items.length} 項目</div>
         <div><span class="badge ${ST[st].c}">${ST[st].l}</span></div><div class="caret">▶</div></div>
       <div class="tbody">
         <div class="hint" style="margin:10px 0 8px">${esc(t.memo)}
@@ -718,7 +718,7 @@ function renderKarte(){
 
   $('#v-karte').innerHTML=`
   <div class="card" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-    <b style="font-size:12px;color:var(--ink-2)">顧問先</b>
+    <b style="font-size:13.5px;color:var(--ink-2)">顧問先</b>
     <select id="csel">${CLIENTS.map(x=>`<option value="${x.id}" ${x.id===c.id?'selected':''}>${x.id}　${esc(x.name)}</option>`).join('')}</select>
     <span class="pill">${c.kind}</span>
     <span class="pill">${c.fiscalMonth}月決算${c.tentativeFiscal?'※仮':''}（当期末 ${d2s(fy)}）</span>
@@ -749,15 +749,15 @@ function renderKarte(){
     <div class="sub">この顧問先の担当は、この画面でのみ変更できます（タスクの小窓では表示のみ）。</div>
     <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center">
       ${[['es-z','担当税理士',c.zeirishi],['es-s','作成担当',c.staff],['es-r','確認者',c.reviewer]].map(([id,lab,cur])=>`
-        <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-2)">${lab}
+        <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;color:var(--ink-2)">${lab}
           <select id="${id}">
             <option value="">（未設定）</option>
             ${[...new Set([...(staffList()),cur].filter(Boolean))].sort().map(n=>
               `<option value="${esc(n)}" ${n===cur?'selected':''}>${esc(n)}</option>`).join('')}
           </select>
         </label>`).join('')}
-      <button id="es-save" style="background:var(--series-1);color:#fff;border:none;border-radius:8px;padding:8px 18px;cursor:pointer;font-size:12.5px">保存</button>
-      <span id="es-msg" style="font-size:11px;color:var(--ink-3)"></span>
+      <button id="es-save" style="background:var(--series-1);color:#fff;border:none;border-radius:8px;padding:8px 18px;cursor:pointer;font-size:14px">保存</button>
+      <span id="es-msg" style="font-size:12.5px;color:var(--ink-3)"></span>
     </div>
   </div>
 
@@ -812,7 +812,7 @@ function renderSvc(){
         title="${esc(c.name)}／${esc(t.name)}"></td>`).join('');
     return `<tr><td class="svname" title="${esc(c.name)}">
       <span class="code">${esc(c.id)}</span> ${esc(c.name)}
-      <span class="sub2" style="font-size:10px;color:var(--ink-3)"> ${c.fiscalMonth}月決算／${esc(c.staff||'担当未設定')}／<b id="svn-${esc(c.id)}">${has.size}</b> 業務</span>
+      <span class="sub2" style="font-size:11.5px;color:var(--ink-3)"> ${c.fiscalMonth}月決算／${esc(c.staff||'担当未設定')}／<b id="svn-${esc(c.id)}">${has.size}</b> 業務</span>
       </td>${cells}</tr>`;
   }).join('');
 
@@ -835,9 +835,9 @@ function renderSvc(){
     <select id="sv_staff">${staffOpts}</select>
     <select id="sv_kind">${kindOpts}</select>
     <input type="text" id="sv_q" placeholder="顧問先名・コードで絞り込み" value="${esc(SV.q)}"
-      style="font-family:inherit;font-size:12px;padding:5px 8px;border:1px solid var(--axis);border-radius:6px;background:var(--surface-1);color:var(--ink-1)">
-    <span class="cnt" style="font-size:11px;color:var(--ink-3)">${list.length} 社 × ${cols.length} 業務</span>
-    <span class="sub" id="sv_msg" style="font-size:11px;color:var(--ink-3)"></span>
+      style="font-family:inherit;font-size:13.5px;padding:5px 8px;border:1px solid var(--axis);border-radius:6px;background:var(--surface-1);color:var(--ink-1)">
+    <span class="cnt" style="font-size:12.5px;color:var(--ink-3)">${list.length} 社 × ${cols.length} 業務</span>
+    <span class="sub" id="sv_msg" style="font-size:12.5px;color:var(--ink-3)"></span>
   </div>
   <div class="hint"><b>チェックが入っている業務だけ、タスクが作られます。</b>外すと今後は作られません。
     まだ手を付けていないタスクはその場で消えますが、<b>進捗が入っているタスクは記録として残します</b>。</div>
@@ -910,7 +910,7 @@ function tmplCard(t){
   return `<div class="card" data-tpl="${esc(t.id)}">
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">
       <i class="dot" style="background:${CAT[t.cat]?CAT[t.cat].color:'var(--ink-3)'}"></i>
-      ${t.isNew?'<span class="newb">新</span>':''}<h3 style="font-size:14px">${esc(t.name)}</h3>
+      ${t.isNew?'<span class="newb">新</span>':''}<h3 style="font-size:15.5px">${esc(t.name)}</h3>
       <span class="pill">${CAT[t.cat]?CAT[t.cat].label:esc(t.cat)}</span>
       <span class="pill">${ANCHOR_LABEL[t.anchor]||esc(t.anchor)}</span>
       <span class="pill">${t.items.length} 項目</span><span class="pill">対象 ${n} 社</span>
@@ -1641,9 +1641,9 @@ function showGate(msg){
     `<div class="card" style="max-width:430px;margin:60px auto">
       <h2>合言葉を入力してください</h2>
       <div class="sub">この端末では初回のみ必要です。次回からは自動で開きます。</div>
-      ${msg?`<p style="color:var(--critical);font-size:12px;margin-bottom:8px">${esc(msg)}</p>`:''}
-      <input type="password" id="gatekey" style="width:100%;padding:10px;border:1px solid var(--ring);border-radius:8px;background:var(--plane);color:var(--ink-1);font-size:14px" placeholder="合言葉">
-      <button id="gatego" style="margin-top:10px;background:var(--series-1);color:#fff;border:none;border-radius:8px;padding:9px 18px;cursor:pointer;font-size:13px">開く</button>
+      ${msg?`<p style="color:var(--critical);font-size:13.5px;margin-bottom:8px">${esc(msg)}</p>`:''}
+      <input type="password" id="gatekey" style="width:100%;padding:10px;border:1px solid var(--ring);border-radius:8px;background:var(--plane);color:var(--ink-1);font-size:15.5px" placeholder="合言葉">
+      <button id="gatego" style="margin-top:10px;background:var(--series-1);color:#fff;border:none;border-radius:8px;padding:9px 18px;cursor:pointer;font-size:14.5px">開く</button>
     </div>`;
   $('#gatego').onclick = ()=>{
     KEY = $('#gatekey').value.trim();
