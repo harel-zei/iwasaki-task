@@ -152,10 +152,12 @@ select,input[type=text]{font-family:inherit;font-size:13.5px;padding:5px 8px;bor
 .gridt th.gh div{width:1em;margin:0 auto;font-size:13.5px;font-weight:700;color:var(--ink-1);
   line-height:1.14;text-align:center;word-break:break-all;white-space:normal;
   max-height:234px;overflow:hidden}
-.gridt th.gh0{position:sticky;top:0;left:0;z-index:4;background:var(--plane);border-bottom:1px solid var(--ring);text-align:left;padding:6px 10px;writing-mode:horizontal-tb}
+.gridt{--c1:250px}
+.gridt th.gh0{position:sticky;top:0;left:0;z-index:4;background:var(--plane);border-bottom:1px solid var(--ring);text-align:left;padding:6px 10px;writing-mode:horizontal-tb;
+  width:var(--c1);min-width:var(--c1);max-width:var(--c1)}
 .gridt td.gc{border-left:1px solid var(--ring);border-bottom:1px dashed var(--ring);text-align:center;padding:3px 5px;min-width:26px}
 .gridt td.gc.na{color:var(--ink-3);font-size:11.5px}
-.gridt td.gname{position:sticky;left:0;background:var(--surface-1);z-index:1;border-bottom:1px dashed var(--ring);padding:6px 10px;min-width:250px;max-width:300px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gridt td.gname{position:sticky;left:0;background:var(--surface-1);z-index:1;border-bottom:1px dashed var(--ring);padding:6px 10px;width:var(--c1);min-width:var(--c1);max-width:var(--c1);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gridt td.gname .code{color:var(--ink-3);font-size:12px;margin-right:4px}
 .gridt td.gname .sub2{font-size:11.5px;color:var(--ink-3);margin-top:1px}
 .gridt input[type=checkbox]{width:17px;height:17px;cursor:pointer}
@@ -213,13 +215,21 @@ select,input[type=text]{font-family:inherit;font-size:13.5px;padding:5px 8px;bor
   line-height:1.14;text-align:center;word-break:break-all;white-space:normal;
   max-height:232px;overflow:hidden}
 .svct th.sv i.cbar{position:absolute;left:0;right:0;bottom:0;height:3px}   /* 区分の色 */
+/* 列の境界をつまんで動かすためのつまみ（1列目の幅を変える） */
+.colres{position:absolute;top:0;right:-4px;bottom:0;width:9px;cursor:col-resize;z-index:6;touch-action:none}
+.colres::after{content:'';position:absolute;left:3px;top:0;bottom:0;width:3px;border-radius:2px;background:transparent}
+.colres:hover::after,.colres.dragging::after{background:var(--series-1)}
+
 /* 縦書きで90度回す文字（長音・カッコなど） */
 .vrot{display:inline-block;transform:rotate(90deg)}
 .svct tbody tr:hover td{background:rgba(127,127,127,.10)}
 .svct td.svc:nth-child(even){background:rgba(127,127,127,.045)}
+.svct{--c1:250px}
 .svct th.sv0{position:sticky;top:0;left:0;z-index:4;background:var(--plane);text-align:left;padding:6px 10px;
-  writing-mode:horizontal-tb;border-bottom:1px solid var(--ring)}
-.svct td.svname{position:sticky;left:0;background:var(--surface-1);z-index:1;padding:6px 10px;min-width:250px;
+  writing-mode:horizontal-tb;border-bottom:1px solid var(--ring);
+  width:var(--c1);min-width:var(--c1);max-width:var(--c1)}
+.svct td.svname{position:sticky;left:0;background:var(--surface-1);z-index:1;padding:6px 10px;
+  width:var(--c1);min-width:var(--c1);max-width:var(--c1);
   border-bottom:1px dashed var(--ring);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .svct td.svname .code{color:var(--ink-3);font-size:12px;margin-right:4px}
 .svct td.svc{text-align:center;padding:3px 5px;border-left:1px solid var(--ring);border-bottom:1px dashed var(--ring);min-width:28px}
@@ -788,6 +798,61 @@ function renderKarte(){
   };
 }
 
+/* ---- 1列目の幅をドラッグで変える（顧問先の列の境界を動かす） ---- */
+const COLW_MIN=90, COLW_MAX=560;
+
+/** 保存してある幅を表に反映する */
+function applyColWidth(table, key){
+  const w=Number(localStorage.getItem(key)||0);
+  if(w>=COLW_MIN && w<=COLW_MAX) table.style.setProperty('--c1', w+'px');
+}
+
+/**
+ * 見出しの右端につまみを置き、つまんで動かすと1列目の幅が変わる。
+ * 幅は端末に記憶する。つまみをダブルクリックすると元の幅に戻る。
+ */
+function attachColResizer(table, headCell, key){
+  if(!table || !headCell || headCell.querySelector('.colres')) return;
+  applyColWidth(table, key);
+  const grip=document.createElement('div');
+  grip.className='colres';
+  grip.title='ドラッグで顧問先の列の幅を変えられます（ダブルクリックで元に戻す）';
+  headCell.style.position='sticky';   /* つまみの位置の基準にする */
+  headCell.appendChild(grip);
+
+  const startDrag=(startX)=>{
+    const startW=headCell.getBoundingClientRect().width;
+    grip.classList.add('dragging');
+    document.body.style.cursor='col-resize';
+    document.body.style.userSelect='none';
+    const move=x=>{
+      const w=Math.min(COLW_MAX, Math.max(COLW_MIN, Math.round(startW + (x-startX))));
+      table.style.setProperty('--c1', w+'px');
+    };
+    const onMove=ev=>move(ev.touches?ev.touches[0].clientX:ev.clientX);
+    const onUp=()=>{
+      grip.classList.remove('dragging');
+      document.body.style.cursor=''; document.body.style.userSelect='';
+      document.removeEventListener('mousemove',onMove); document.removeEventListener('mouseup',onUp);
+      document.removeEventListener('touchmove',onMove); document.removeEventListener('touchend',onUp);
+      try{ localStorage.setItem(key, parseInt(table.style.getPropertyValue('--c1'),10)); }catch(e){}
+    };
+    document.addEventListener('mousemove',onMove);
+    document.addEventListener('mouseup',onUp);
+    document.addEventListener('touchmove',onMove,{passive:false});
+    document.addEventListener('touchend',onUp);
+  };
+
+  grip.addEventListener('mousedown',e=>{ e.preventDefault(); e.stopPropagation(); startDrag(e.clientX); });
+  grip.addEventListener('touchstart',e=>{ e.preventDefault(); e.stopPropagation(); startDrag(e.touches[0].clientX); },{passive:false});
+  grip.addEventListener('dblclick',e=>{
+    e.preventDefault(); e.stopPropagation();
+    table.style.removeProperty('--c1');
+    try{ localStorage.removeItem(key); }catch(e){}
+  });
+  grip.addEventListener('click',e=>e.stopPropagation());   /* 小窓が開かないように */
+}
+
 /* ---- 受託業務（行=顧問先 × 列=業務。何を引き受けて、何をやらないか） ---- */
 const SV={month:'all', staff:'all', kind:'all', q:'', cat:'all'};
 
@@ -846,6 +911,7 @@ function renderSvc(){
     <tbody>${body}</tbody>
   </table></div>`;
 
+  attachColResizer($('#v-svc .svct'), $('#v-svc .svct th.sv0'), 'harel_colw_svc');
   $('#sv_cat').onchange  =e=>{SV.cat=e.target.value; renderSvc();};
   $('#sv_mon').onchange  =e=>{SV.month=e.target.value; renderSvc();};
   $('#sv_staff').onchange=e=>{SV.staff=e.target.value; renderSvc();};
@@ -1190,6 +1256,7 @@ function renderGrid(){
     <tbody>${body}</tbody>
   </table></div>`;
 
+  attachColResizer($('#v-grid .gridt'), $('#v-grid .gridt th.gh0'), 'harel_colw_grid');
   $('#gr_tid').onchange  =e=>{GR.tid=e.target.value; GR.period='nearest'; renderGrid();};
   $('#gr_per').onchange  =e=>{GR.period=e.target.value; renderGrid();};
   $('#gr_mon').onchange  =e=>{GR.month=e.target.value; renderGrid();};
