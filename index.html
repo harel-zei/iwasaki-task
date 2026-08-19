@@ -100,7 +100,7 @@ border-radius:9px;background:transparent;color:var(--amber);font-size:12.5px;fon
 padding:7px 14px;font-size:13px;font-family:inherit;font-weight:700;color:var(--ink3)}
 .filters button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--inv)}
 
-/* ボールがどちらにあるかで一覧を2枚に分ける。
+/* ボールがどちらにあるかで一覧を2枚に分ける（タスク／相手ボール）。
    スマホは横スワイプで切り替え（scroll-snap）、パソコンは左右に並べる。 */
 .balltabs{display:flex;gap:8px;margin:16px 0 0}
 .balltabs button{flex:1;border:1px solid var(--line);background:var(--soft);border-radius:12px;
@@ -282,12 +282,12 @@ footer{margin-top:36px;padding-top:14px;border-top:1px solid var(--line);font-si
   </div>
 
   <div class="balltabs" id="balltabs">
-    <button type="button" data-ball="self" aria-pressed="true">自分の番<span class="n" id="nSelf"></span></button>
-    <button type="button" data-ball="other" aria-pressed="false">先方の番<span class="n" id="nOther"></span></button>
+    <button type="button" data-ball="self" aria-pressed="true">タスク<span class="n" id="nSelf"></span></button>
+    <button type="button" data-ball="other" aria-pressed="false">相手ボール<span class="n" id="nOther"></span></button>
   </div>
   <div class="panes" id="panes">
-    <div class="pane"><div class="paneh">自分の番</div><div id="listSelf"></div></div>
-    <div class="pane"><div class="paneh">先方の番</div><div id="listOther"></div></div>
+    <div class="pane"><div class="paneh">タスク</div><div id="listSelf"></div></div>
+    <div class="pane"><div class="paneh">相手ボール</div><div id="listOther"></div></div>
   </div>
 
   <h2>この先10日の予定</h2>
@@ -603,7 +603,7 @@ function setBall(t,v){
   it.ball=v; it.updated_at=new Date().toISOString();
   prog.items[t.id]=it; dirty=true; saveLocal();
   render();
-  status("pend", v==="self" ? "自分の番に移しました（未同期）" : "先方の番に移しました（未同期）");
+  status("pend", v==="self" ? "自分に戻しました（未同期）" : "相手に投げました（未同期）");
   schedule(800);
 }
 // 翌朝の一覧が指示どおりになっていたら、その指示は役目を終えたので消す。
@@ -698,8 +698,8 @@ function render(){
       b.addEventListener("click",function(){ setStatus(t.id,pair[0],d); });
       chips.appendChild(b);
     });
-    var mv=el("button","chip cmove", ball==="other" ? "自分の番へ" : "先方の番へ");
-    mv.setAttribute("title", ball==="other" ? "自分が動く番として扱う" : "先方の返事待ちとして扱う");
+    var mv=el("button","chip cmove", ball==="other" ? "自分に戻す" : "相手に投げる");
+    mv.setAttribute("title", ball==="other" ? "自分のタスクに戻す" : "相手の返事待ちにする");
     mv.addEventListener("click",function(){ setBall(t, ball==="other" ? "self" : "other"); });
     chips.appendChild(mv);
     if(t.manual){
@@ -717,12 +717,12 @@ function render(){
     ta.addEventListener("input",function(){ setComment(t.id, ta.value); });
     d.appendChild(ta);
     if(p.updated_at) d.appendChild(el("div","stamp","最終更新 "+new Date(p.updated_at).toLocaleString("ja-JP")));
-    // ball が無い古いデータは「自分の番」として扱う（表示が消えないように）
+    // ball が無い古いデータは「タスク」側として扱う（表示が消えないように）
     if(ball==="other"){ d.setAttribute("data-ball","other"); listOther.appendChild(d); nOther++; }
     else { listSelf.appendChild(d); nSelf++; }
   });
   if(!nSelf) listSelf.appendChild(el("p","cnt","該当する項目はありません。"));
-  if(!nOther) listOther.appendChild(el("p","cnt","先方の返事待ちの項目はありません。"));
+  if(!nOther) listOther.appendChild(el("p","cnt","相手ボールの項目はありません。"));
   $("#nSelf").textContent=nSelf; $("#nOther").textContent=nOther;
 
   var cal=$("#cal"); cal.innerHTML="";
