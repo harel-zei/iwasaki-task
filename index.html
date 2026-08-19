@@ -210,6 +210,8 @@ border:0;padding:0;margin:0;background:transparent;-webkit-appearance:none;appea
 .addform .row button{flex:1;border:none;border-radius:9px;padding:13px;font-size:14px;font-weight:700;font-family:inherit}
 .item[data-manual="1"]{border-left:3px solid var(--blue)}
 .item[data-manual="1"] .id{color:var(--blue);font-size:16px}
+.chip.cmove{min-width:0;font-weight:700;font-size:12px;color:var(--blue);border-color:var(--blueline);
+background:var(--bluebg)}
 .chip.cdel{min-width:48px;font-weight:400;font-size:12px;color:var(--red);border-color:var(--delline)}
 footer{margin-top:36px;padding-top:14px;border-top:1px solid var(--line);font-size:11.5px;color:var(--ink3)}
 </style>
@@ -433,7 +435,7 @@ function pull(){
        if(!inboxDirty) inbox=rin;
        else inbox=mergeInbox(rin,inbox);
      }
-     prune();
+     prune(); absorbBall();
      saveLocal(); render();
      status((dirty||inboxDirty)?"pend":"ok", (dirty||inboxDirty)?"未同期の変更があります":"最新です");
      if(dirty) schedule(200);
@@ -589,6 +591,33 @@ function counters(){
   $("#cnt").textContent="完了 "+done+" ／ 不要 "+skip+" ／ 全 "+list.length+"（"+pct+"%）"
     +(addN?"　※自分で追加した "+addN+"件は明朝に整理されます":"");
 }
+// ボールの実効値。先生がボタンで動かした指示（progress側）があればそれを優先する。
+function ballOf(t){
+  var o=(prog.items[t.id]||{}).ball;
+  if(o==="self"||o==="other") return o;
+  return t.ball==="other" ? "other" : "self";
+}
+// ボタンで動かす。tasks.json は毎朝の処理のものなので触らず、progress 側に指示として残す。
+function setBall(t,v){
+  var it=prog.items[t.id]||{status:"",comment:""};
+  it.ball=v; it.updated_at=new Date().toISOString();
+  prog.items[t.id]=it; dirty=true; saveLocal();
+  render();
+  status("pend", v==="self" ? "自分の番に移しました（未同期）" : "先方の番に移しました（未同期）");
+  schedule(800);
+}
+// 翌朝の一覧が指示どおりになっていたら、その指示は役目を終えたので消す。
+// （残したままだと、後で状況が変わったときに古い指示が勝ってしまう）
+function absorbBall(){
+  if(!doc||!doc.tasks) return;
+  var changed=false;
+  doc.tasks.forEach(function(t){
+    var it=prog.items[t.id];
+    if(!it||!it.ball) return;
+    if(it.ball===(t.ball==="other"?"other":"self")){ delete it.ball; changed=true; }
+  });
+  if(changed){ dirty=true; saveLocal(); }
+}
 function setComment(id,txt){
   var it=prog.items[id]||{status:"",comment:""};
   it.comment=txt; it.updated_at=new Date().toISOString();
@@ -653,7 +682,8 @@ function render(){
     var tx=el("div","txt");
     var ti=el("span","t");
     if(t.due_label){ var du=el("span","due",t.due_label); ti.appendChild(du); }
-    if(t.ball==="other" && t.waiting_for){ ti.appendChild(el("span","waitfor",t.waiting_for+"待ち")); }
+    var ball=ballOf(t);
+    if(ball==="other" && t.waiting_for){ ti.appendChild(el("span","waitfor",t.waiting_for+"待ち")); }
     var cl=el("span","cl",t.client); ti.appendChild(cl);
     ti.appendChild(document.createTextNode(t.title));
     tx.appendChild(ti);
@@ -668,6 +698,10 @@ function render(){
       b.addEventListener("click",function(){ setStatus(t.id,pair[0],d); });
       chips.appendChild(b);
     });
+    var mv=el("button","chip cmove", ball==="other" ? "自分の番へ" : "先方の番へ");
+    mv.setAttribute("title", ball==="other" ? "自分が動く番として扱う" : "先方の返事待ちとして扱う");
+    mv.addEventListener("click",function(){ setBall(t, ball==="other" ? "self" : "other"); });
+    chips.appendChild(mv);
     if(t.manual){
       var del=el("button","chip cdel","削除");
       del.addEventListener("click",function(){
@@ -684,7 +718,7 @@ function render(){
     d.appendChild(ta);
     if(p.updated_at) d.appendChild(el("div","stamp","最終更新 "+new Date(p.updated_at).toLocaleString("ja-JP")));
     // ball が無い古いデータは「自分の番」として扱う（表示が消えないように）
-    if(t.ball==="other"){ d.setAttribute("data-ball","other"); listOther.appendChild(d); nOther++; }
+    if(ball==="other"){ d.setAttribute("data-ball","other"); listOther.appendChild(d); nOther++; }
     else { listSelf.appendChild(d); nSelf++; }
   });
   if(!nSelf) listSelf.appendChild(el("p","cnt","該当する項目はありません。"));
