@@ -100,12 +100,36 @@ border-radius:9px;background:transparent;color:var(--amber);font-size:12.5px;fon
 padding:7px 14px;font-size:13px;font-family:inherit;font-weight:700;color:var(--ink3)}
 .filters button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--inv)}
 
+/* ボールがどちらにあるかで一覧を2枚に分ける。
+   スマホは横スワイプで切り替え（scroll-snap）、パソコンは左右に並べる。 */
+.balltabs{display:flex;gap:8px;margin:16px 0 0}
+.balltabs button{flex:1;border:1px solid var(--line);background:var(--soft);border-radius:12px;
+padding:11px 8px;font-size:13.5px;font-family:inherit;font-weight:700;color:var(--ink3)}
+.balltabs button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--inv)}
+.balltabs .n{margin-left:6px;font-size:12px;opacity:.75}
+.swipehint{font-size:11.5px;color:var(--ink3);text-align:center;margin:6px 0 0}
+.panes{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;
+-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.panes::-webkit-scrollbar{display:none}
+.pane{flex:0 0 100%;min-width:0;scroll-snap-align:start}
+.paneh{display:none}
+@media (min-width:760px){
+  .balltabs,.swipehint{display:none}
+  .panes{overflow:visible;gap:20px}
+  .pane{flex:1 1 0}
+  .paneh{display:block;font-size:13.5px;font-weight:700;color:var(--ink2);
+  margin:20px 0 2px;padding-bottom:7px;border-bottom:2px solid var(--line)}
+}
 h2{font-size:16.5px;margin:30px 0 2px;padding-bottom:6px;border-bottom:1px solid var(--line);font-weight:700}
 .item{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:9px 0}
 .item[data-status="done"]{opacity:.5;border-left:3px solid var(--green)}
 .item[data-status="done"] .t{text-decoration:line-through;text-decoration-color:var(--strike)}
 .item[data-status="doing"]{border-left:3px solid var(--blue);background:var(--doing)}
 .item[data-status="skip"]{opacity:.5;border-left:3px solid var(--gray)}
+.item[data-ball="other"]{border-left:3px solid var(--gray);background:var(--soft)}
+.item[data-ball="other"][data-g="today"]{border-left-color:var(--gray)}
+.waitfor{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:4px;
+margin-right:6px;background:var(--due);color:var(--ink3)}
 .item[data-g="today"]{border-left:3px solid var(--red)}
 .item[data-g="today"][data-status="done"]{border-left-color:var(--green)}
 .top{display:flex;gap:10px;align-items:baseline}
@@ -255,7 +279,14 @@ footer{margin-top:36px;padding-top:14px;border-top:1px solid var(--line);font-si
     </div>
   </div>
 
-  <div id="list"></div>
+  <div class="balltabs" id="balltabs">
+    <button type="button" data-ball="self" aria-pressed="true">自分の番<span class="n" id="nSelf"></span></button>
+    <button type="button" data-ball="other" aria-pressed="false">先方の番<span class="n" id="nOther"></span></button>
+  </div>
+  <div class="panes" id="panes">
+    <div class="pane"><div class="paneh">自分の番</div><div id="listSelf"></div></div>
+    <div class="pane"><div class="paneh">先方の番</div><div id="listOther"></div></div>
+  </div>
 
   <h2>この先10日の予定</h2>
   <table class="cal"><tbody id="cal"></tbody></table>
@@ -572,7 +603,7 @@ function staleDays(ds){
   return Math.max(0,Math.round((today-docday)/86400000));
 }
 function render(){
-  if(!doc){ $("#list").innerHTML=""; return; }
+  if(!doc){ $("#listSelf").innerHTML=""; $("#listOther").innerHTML=""; return; }
   $("#eyebrow").textContent=doc.subtitle||"";
   if(doc.title) $("#title").textContent=doc.title;
   if(doc.title) document.title=doc.title;
@@ -600,7 +631,6 @@ function render(){
 
   counters();
 
-  var list=$("#list"); list.innerHTML="";
   var shown=allTasks().filter(function(t){
     var s=(prog.items[t.id]||{}).status||"";
     if(filter==="all") return true;
@@ -610,7 +640,9 @@ function render(){
     if(filter==="done") return s==="done"||s==="skip";
     return true;
   });
-  if(!shown.length){ list.appendChild(el("p","cnt","該当する項目はありません。")); }
+  var listSelf=$("#listSelf"), listOther=$("#listOther");
+  listSelf.innerHTML=""; listOther.innerHTML="";
+  var nSelf=0, nOther=0;
   shown.forEach(function(t){
     var p=prog.items[t.id]||{};
     var d=el("div","item"); d.setAttribute("data-status",p.status||"");
@@ -621,6 +653,7 @@ function render(){
     var tx=el("div","txt");
     var ti=el("span","t");
     if(t.due_label){ var du=el("span","due",t.due_label); ti.appendChild(du); }
+    if(t.ball==="other" && t.waiting_for){ ti.appendChild(el("span","waitfor",t.waiting_for+"待ち")); }
     var cl=el("span","cl",t.client); ti.appendChild(cl);
     ti.appendChild(document.createTextNode(t.title));
     tx.appendChild(ti);
@@ -650,8 +683,13 @@ function render(){
     ta.addEventListener("input",function(){ setComment(t.id, ta.value); });
     d.appendChild(ta);
     if(p.updated_at) d.appendChild(el("div","stamp","最終更新 "+new Date(p.updated_at).toLocaleString("ja-JP")));
-    list.appendChild(d);
+    // ball が無い古いデータは「自分の番」として扱う（表示が消えないように）
+    if(t.ball==="other"){ d.setAttribute("data-ball","other"); listOther.appendChild(d); nOther++; }
+    else { listSelf.appendChild(d); nSelf++; }
   });
+  if(!nSelf) listSelf.appendChild(el("p","cnt","該当する項目はありません。"));
+  if(!nOther) listOther.appendChild(el("p","cnt","先方の返事待ちの項目はありません。"));
+  $("#nSelf").textContent=nSelf; $("#nOther").textContent=nOther;
 
   var cal=$("#cal"); cal.innerHTML="";
   (doc.calendar||[]).forEach(function(c){
@@ -752,6 +790,25 @@ $("#addSave").addEventListener("click",function(){
            due_label:$("#inDue").value.trim(), group:$("#inToday").checked?"today":"open"});
   closeAdd();
 });
+// スマホは横スワイプ、パソコンは左右並び。タブを押しても切り替わる。
+(function(){
+  var panes=$("#panes"), tabs=[].slice.call(document.querySelectorAll(".balltabs button"));
+  function mark(i){ tabs.forEach(function(b,k){ b.setAttribute("aria-pressed", k===i?"true":"false"); }); }
+  tabs.forEach(function(b,i){
+    b.addEventListener("click",function(){
+      mark(i);
+      panes.scrollTo({left:i*panes.clientWidth, behavior:"smooth"});
+    });
+  });
+  var t=null;
+  panes.addEventListener("scroll",function(){
+    clearTimeout(t);
+    t=setTimeout(function(){
+      var w=panes.clientWidth||1;
+      mark(Math.round(panes.scrollLeft/w));
+    },80);
+  });
+})();
 document.querySelectorAll(".filters button").forEach(function(b){
   b.addEventListener("click",function(){
     document.querySelectorAll(".filters button").forEach(function(x){x.setAttribute("aria-pressed","false")});
