@@ -107,6 +107,7 @@ padding:7px 14px;font-size:13px;font-family:inherit;font-weight:700;color:var(--
 padding:11px 8px;font-size:13.5px;font-family:inherit;font-weight:700;color:var(--ink3)}
 .balltabs button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--inv)}
 .balltabs .n{margin-left:6px;font-size:12px;opacity:.75}
+.paneh .n{margin-left:8px;font-size:12px;font-weight:400;color:var(--ink3)}
 .swipehint{font-size:11.5px;color:var(--ink3);text-align:center;margin:6px 0 0}
 .panes{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;
 -webkit-overflow-scrolling:touch;scrollbar-width:none}
@@ -286,8 +287,8 @@ footer{margin-top:36px;padding-top:14px;border-top:1px solid var(--line);font-si
     <button type="button" data-ball="other" aria-pressed="false">相手ボール<span class="n" id="nOther"></span></button>
   </div>
   <div class="panes" id="panes">
-    <div class="pane"><div class="paneh">タスク</div><div id="listSelf"></div></div>
-    <div class="pane"><div class="paneh">相手ボール</div><div id="listOther"></div></div>
+    <div class="pane"><div class="paneh">タスク<span class="n" id="hSelf"></span></div><div id="listSelf"></div></div>
+    <div class="pane"><div class="paneh">相手ボール<span class="n" id="hOther"></span></div><div id="listOther"></div></div>
   </div>
 
   <h2>この先10日の予定</h2>
@@ -724,6 +725,7 @@ function render(){
   if(!nSelf) listSelf.appendChild(el("p","cnt","該当する項目はありません。"));
   if(!nOther) listOther.appendChild(el("p","cnt","相手ボールの項目はありません。"));
   $("#nSelf").textContent=nSelf; $("#nOther").textContent=nOther;
+  $("#hSelf").textContent=nSelf; $("#hOther").textContent=nOther;   // パソコンの見出し側
 
   var cal=$("#cal"); cal.innerHTML="";
   (doc.calendar||[]).forEach(function(c){
