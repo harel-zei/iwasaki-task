@@ -121,6 +121,14 @@ padding:11px 8px;font-size:13.5px;font-family:inherit;font-weight:700;color:var(
   .paneh{display:block;font-size:13.5px;font-weight:700;color:var(--ink2);
   margin:20px 0 2px;padding-bottom:7px;border-bottom:2px solid var(--line)}
 }
+/* だいぶ先のタスクの格納場所。ふだんは畳んでおき、中身はいつでも確認できる。 */
+.drawer{display:block;width:100%;margin:20px 0 0;padding:12px;border:1px dashed var(--dash);
+border-radius:10px;background:transparent;color:var(--ink2);font-size:13px;font-family:inherit;font-weight:700}
+.drawer:active{background:var(--soft2)}
+.holdwrap{margin-top:2px}
+.holdwrap .item{opacity:.85}
+.wake{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:4px;
+margin-right:6px;background:var(--bluebg);color:var(--blue)}
 h2{font-size:16.5px;margin:30px 0 2px;padding-bottom:6px;border-bottom:1px solid var(--line);font-weight:700}
 .item{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:9px 0}
 .item[data-status="done"]{opacity:.5;border-left:3px solid var(--green)}
@@ -211,6 +219,7 @@ border:0;padding:0;margin:0;background:transparent;-webkit-appearance:none;appea
 .addform .row button{flex:1;border:none;border-radius:9px;padding:13px;font-size:14px;font-weight:700;font-family:inherit}
 .item[data-manual="1"]{border-left:3px solid var(--blue)}
 .item[data-manual="1"] .id{color:var(--blue);font-size:16px}
+.chip.chold{min-width:0;font-weight:700;font-size:12px;color:var(--ink3);border-color:var(--dash)}
 .chip.cmove{min-width:0;font-weight:700;font-size:12px;color:var(--blue);border-color:var(--blueline);
 background:var(--bluebg)}
 .chip.cdel{min-width:48px;font-weight:400;font-size:12px;color:var(--red);border-color:var(--delline)}
@@ -291,6 +300,9 @@ footer{margin-top:36px;padding-top:14px;border-top:1px solid var(--line);font-si
     <div class="pane"><div class="paneh">相手ボール<span class="n" id="hOther"></span></div><div id="listOther"></div></div>
   </div>
 
+  <button class="drawer hide" id="btnHold"></button>
+  <div class="holdwrap hide" id="holdwrap"><div id="listHold"></div></div>
+
   <h2>この先10日の予定</h2>
   <table class="cal"><tbody id="cal"></tbody></table>
 
@@ -331,7 +343,7 @@ var LS="harel_stocktake_v1";
 var cfg={repo:"",branch:"main",token:""};
 var doc=null, prog={updated_at:null,items:{}}, progSha=null;
 var inbox={updated_at:null,items:[]}, inboxSha=null, inboxDirty=false, inboxBusy=false;
-var filter="open", dirty=false, timer=null, busy=false;
+var filter="open", dirty=false, timer=null, busy=false, holdOpen=false;
 
 var $=function(s){return document.querySelector(s)};
 var el=function(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
@@ -583,14 +595,37 @@ function setStatus(id,v,node){
 }
 function counters(){
   if(!doc) return;
-  var list=allTasks();
+  var all=allTasks();
+  // 格納中のものは「いま持っている仕事」ではないので、進み具合の母数から外す
+  var held=all.filter(heldOf).length;
+  var list=all.filter(function(t){ return !heldOf(t); });
   var done=list.filter(function(t){return (prog.items[t.id]||{}).status==="done"}).length;
   var skip=list.filter(function(t){return (prog.items[t.id]||{}).status==="skip"}).length;
   var pct=list.length?Math.round((done+skip)/list.length*100):0;
   $("#barfill").style.width=pct+"%";
   var addN=inboxAsTasks().length;
   $("#cnt").textContent="完了 "+done+" ／ 不要 "+skip+" ／ 全 "+list.length+"（"+pct+"%）"
+    +(held?"　格納 "+held+"件":"")
     +(addN?"　※自分で追加した "+addN+"件は明朝に整理されます":"");
+}
+// 「あとで」に入っているか。先生がボタンで動かした指示（progress側）があればそれを優先する。
+// 戻す予定日（wake_date）が来ていたら、毎朝の処理を待たずに一覧へ戻す（取りこぼし防止）。
+function heldOf(t){
+  var h=(prog.items[t.id]||{}).hold;
+  if(h===true) return true;
+  if(h===false) return false;
+  if(t.group!=="later") return false;
+  var u=daysUntil(t.wake_date);
+  if(u!==null && u<=0) return false;   // 戻す日が来た（当日を含む）
+  return true;
+}
+function setHold(t,v){
+  var it=prog.items[t.id]||{status:"",comment:""};
+  it.hold=v; it.updated_at=new Date().toISOString();
+  prog.items[t.id]=it; dirty=true; saveLocal();
+  render();
+  status("pend", v ? "あとでに入れました（未同期）" : "一覧に戻しました（未同期）");
+  schedule(800);
 }
 // ボールの実効値。先生がボタンで動かした指示（progress側）があればそれを優先する。
 function ballOf(t){
@@ -617,6 +652,11 @@ function absorbBall(){
     if(!it||!it.ball) return;
     if(it.ball===(t.ball==="other"?"other":"self")){ delete it.ball; changed=true; }
   });
+  doc.tasks.forEach(function(t){
+    var it=prog.items[t.id];
+    if(!it||typeof it.hold!=="boolean") return;
+    if(it.hold===(t.group==="later")){ delete it.hold; changed=true; }
+  });
   if(changed){ dirty=true; saveLocal(); }
 }
 function setComment(id,txt){
@@ -625,6 +665,22 @@ function setComment(id,txt){
   prog.items[id]=it; dirty=true; saveLocal(); status("pend","未同期"); schedule(2500);
 }
 
+// その日付は今日から何日先か（正なら未来、0は今日、負なら過去）。
+// staleDays は 0 で下げ止まるので、未来を測るにはこちらを使う。
+function daysUntil(ds){
+  if(!ds||!/^\d{4}-\d{2}-\d{2}$/.test(ds)) return null;
+  var now=new Date(); var today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  var p=String(ds).split("-"); var target=new Date(+p[0],+p[1]-1,+p[2]);
+  return Math.round((target-today)/86400000);
+}
+// 「9/14から」の表示。今日・明日は言葉にする。
+function wakeLabel(ds){
+  var d=daysUntil(ds);            // 正なら未来
+  if(d===0) return "本日から";
+  if(d===1) return "明日から";
+  var p=String(ds).split("-");
+  return (p.length===3? parseInt(p[1],10)+"/"+parseInt(p[2],10) : ds)+"から";
+}
 // 一覧の日付が今日から何日ズレているか（端末の日付基準。0=今日、1=昨日…）
 function staleDays(ds){
   if(!ds||!/^\d{4}-\d{2}-\d{2}$/.test(ds)) return 0;
@@ -637,7 +693,7 @@ function render(){
   $("#eyebrow").textContent=doc.subtitle||"";
   if(doc.title) $("#title").textContent=doc.title;
   if(doc.title) document.title=doc.title;
-  $("#meta").textContent=(doc.date||"")+" 版　タスク "+allTasks().length+"件";
+  $("#meta").textContent=(doc.date||"")+" 版　タスク "+allTasks().filter(function(t){return !heldOf(t)}).length+"件";
   if(doc.headline){ $("#banner").textContent=doc.headline; $("#banner").classList.remove("hide"); }
   var nx=$("#notices"); nx.innerHTML="";
   // 一覧の日付が古いままなら、何より先にそれを知らせる（同期切れ・生成失敗の検知）
@@ -670,9 +726,9 @@ function render(){
     if(filter==="done") return s==="done"||s==="skip";
     return true;
   });
-  var listSelf=$("#listSelf"), listOther=$("#listOther");
-  listSelf.innerHTML=""; listOther.innerHTML="";
-  var nSelf=0, nOther=0;
+  var listSelf=$("#listSelf"), listOther=$("#listOther"), listHold=$("#listHold");
+  listSelf.innerHTML=""; listOther.innerHTML=""; listHold.innerHTML="";
+  var nSelf=0, nOther=0, nHold=0;
   shown.forEach(function(t){
     var p=prog.items[t.id]||{};
     var d=el("div","item"); d.setAttribute("data-status",p.status||"");
@@ -683,7 +739,8 @@ function render(){
     var tx=el("div","txt");
     var ti=el("span","t");
     if(t.due_label){ var du=el("span","due",t.due_label); ti.appendChild(du); }
-    var ball=ballOf(t);
+    var ball=ballOf(t), held=heldOf(t);
+    if(held && t.wake_date){ ti.appendChild(el("span","wake", wakeLabel(t.wake_date))); }
     if(ball==="other" && t.waiting_for){ ti.appendChild(el("span","waitfor",t.waiting_for+"待ち")); }
     var cl=el("span","cl",t.client); ti.appendChild(cl);
     ti.appendChild(document.createTextNode(t.title));
@@ -699,6 +756,10 @@ function render(){
       b.addEventListener("click",function(){ setStatus(t.id,pair[0],d); });
       chips.appendChild(b);
     });
+    var hv=el("button","chip chold", held ? "一覧に戻す" : "あとで");
+    hv.setAttribute("title", held ? "いまの一覧に戻す" : "だいぶ先の話なので格納しておく");
+    hv.addEventListener("click",function(){ setHold(t,!held); });
+    chips.appendChild(hv);
     var mv=el("button","chip cmove", ball==="other" ? "自分に戻す" : "相手に投げる");
     mv.setAttribute("title", ball==="other" ? "自分のタスクに戻す" : "相手の返事待ちにする");
     mv.addEventListener("click",function(){ setBall(t, ball==="other" ? "self" : "other"); });
@@ -719,13 +780,24 @@ function render(){
     d.appendChild(ta);
     if(p.updated_at) d.appendChild(el("div","stamp","最終更新 "+new Date(p.updated_at).toLocaleString("ja-JP")));
     // ball が無い古いデータは「タスク」側として扱う（表示が消えないように）
-    if(ball==="other"){ d.setAttribute("data-ball","other"); listOther.appendChild(d); nOther++; }
+    if(held){ d.setAttribute("data-hold","1"); listHold.appendChild(d); nHold++; }
+    else if(ball==="other"){ d.setAttribute("data-ball","other"); listOther.appendChild(d); nOther++; }
     else { listSelf.appendChild(d); nSelf++; }
   });
   if(!nSelf) listSelf.appendChild(el("p","cnt","該当する項目はありません。"));
   if(!nOther) listOther.appendChild(el("p","cnt","相手ボールの項目はありません。"));
   $("#nSelf").textContent=nSelf; $("#nOther").textContent=nOther;
   $("#hSelf").textContent=nSelf; $("#hOther").textContent=nOther;   // パソコンの見出し側
+
+  // 格納場所。中身が無いときはボタンごと隠す
+  var btnH=$("#btnHold"), wrapH=$("#holdwrap");
+  if(nHold){
+    btnH.classList.remove("hide");
+    btnH.textContent=(holdOpen?"▲ 格納中のタスクを閉じる（":"▼ 格納中のタスクを見る（")+nHold+"件）";
+    wrapH.classList.toggle("hide", !holdOpen);
+  }else{
+    btnH.classList.add("hide"); wrapH.classList.add("hide");
+  }
 
   var cal=$("#cal"); cal.innerHTML="";
   (doc.calendar||[]).forEach(function(c){
@@ -845,6 +917,7 @@ $("#addSave").addEventListener("click",function(){
     },80);
   });
 })();
+$("#btnHold").addEventListener("click",function(){ holdOpen=!holdOpen; render(); });
 document.querySelectorAll(".filters button").forEach(function(b){
   b.addEventListener("click",function(){
     document.querySelectorAll(".filters button").forEach(function(x){x.setAttribute("aria-pressed","false")});
