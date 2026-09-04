@@ -159,6 +159,20 @@ background:var(--soft);font-size:13px;font-weight:700;color:var(--ink3);font-fam
 .cm{width:calc(100% - 42px);margin:8px 0 0 42px;border:1px solid var(--line);border-radius:8px;
 padding:9px 11px;font-family:inherit;font-size:13.5px;background:var(--field);color:var(--ink);resize:vertical;min-height:38px}
 .cm:focus{outline:none;border-color:var(--blue);background:var(--field2)}
+/* Claude からの「次の一手」と下書き。ふだんは畳んでおく。 */
+.howbtn{display:block;width:calc(100% - 42px);margin:8px 0 0 42px;padding:8px;
+border:1px dashed var(--blueline);border-radius:8px;background:transparent;
+color:var(--blue);font-size:12.5px;font-family:inherit;font-weight:700;text-align:left}
+.howbox{width:calc(100% - 42px);margin:6px 0 0 42px;padding:10px 12px;
+border:1px solid var(--blueline);border-radius:8px;background:var(--bluebg)}
+.howh{font-size:11px;font-weight:700;color:var(--blue);letter-spacing:.06em;margin:6px 0 2px}
+.howh:first-child{margin-top:0}
+.howtext{font-size:12.5px;color:var(--ink2);white-space:pre-wrap}
+.draft{margin:2px 0 0;padding:9px 10px;background:var(--card);border:1px solid var(--line);
+border-radius:6px;font-family:inherit;font-size:12.5px;line-height:1.75;color:var(--ink);
+white-space:pre-wrap;word-break:break-word;max-height:42vh;overflow:auto}
+.copybtn{margin:8px 0 0;padding:7px 13px;border:1px solid var(--blueline);border-radius:16px;
+background:var(--card);color:var(--blue);font-size:12px;font-family:inherit;font-weight:700}
 .stamp{font-size:11px;color:var(--ink3);margin:5px 0 0 42px}
 
 .cal{width:100%;border-collapse:collapse;margin:10px 0 0;font-size:13px;background:var(--card)}
@@ -374,6 +388,13 @@ if(window.matchMedia){
 
 // 形が壊れたJSONを読んでも画面が真っ白にならないようにする。
 // 進捗とコメントは岩﨑先生の入力そのものなので、開けなくなるのがいちばん困る。
+// クリップボードが使えない環境では、せめて選択状態にして手でコピーできるようにする
+function fallbackCopy(node){
+  try{
+    var r=document.createRange(); r.selectNodeContents(node);
+    var sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+  }catch(e){}
+}
 function normProg(o){
   if(!o||typeof o!=="object") o={};
   if(!o.items||typeof o.items!=="object"||Array.isArray(o.items)) o.items={};
@@ -772,6 +793,33 @@ function render(){
       chips.appendChild(del);
     }
     d.appendChild(chips);
+
+    // Claude からの「次の一手」と下書き。長いので畳んでおく。
+    if(t.next_step || t.draft){
+      var howBtn=el("button","howbtn","▼ 進め方を見る"+(t.draft?"（下書きあり）":""));
+      var howBox=el("div","howbox hide");
+      if(t.next_step){
+        var h1=el("div","howh","次の一手"); howBox.appendChild(h1);
+        howBox.appendChild(el("div","howtext",t.next_step));
+      }
+      if(t.draft){
+        var h2=el("div","howh","下書き"); howBox.appendChild(h2);
+        var pre=el("pre","draft",t.draft); howBox.appendChild(pre);
+        var cp=el("button","copybtn","下書きをコピー");
+        cp.addEventListener("click",function(){
+          var done=function(){ cp.textContent="コピーしました"; setTimeout(function(){cp.textContent="下書きをコピー";},1600); };
+          if(navigator.clipboard&&navigator.clipboard.writeText){
+            navigator.clipboard.writeText(t.draft).then(done,function(){ fallbackCopy(pre); done(); });
+          }else{ fallbackCopy(pre); done(); }
+        });
+        howBox.appendChild(cp);
+      }
+      howBtn.addEventListener("click",function(){
+        var open=howBox.classList.toggle("hide")===false;
+        howBtn.textContent=(open?"▲ 進め方を閉じる":"▼ 進め方を見る")+(t.draft?"（下書きあり）":"");
+      });
+      d.appendChild(howBtn); d.appendChild(howBox);
+    }
 
     var ta=el("textarea","cm");
     ta.placeholder="コメント（自動保存されます）";
