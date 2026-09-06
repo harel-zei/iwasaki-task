@@ -947,12 +947,50 @@ $("#addSave").addEventListener("click",function(){
   closeAdd();
 });
 // スマホは横スワイプ、パソコンは左右並び。タブを押しても切り替わる。
+//
+// 縦の位置は「タスク」「相手ボール」で別々に覚えておく。
+// 2枚は横に並んでいるだけで、縦にスクロールしているのはページ全体なので、
+// 何もしないと切り替えた先が途中から表示されてしまう（読みかけの位置が残る）。
+// 初めて開く面は一覧の先頭から、戻ってきた面は読みかけの位置から見せる。
 (function(){
-  var panes=$("#panes"), tabs=[].slice.call(document.querySelectorAll(".balltabs button"));
+  var panes=$("#panes"), tabsBar=$("#balltabs"), bar=document.querySelector(".statusbar");
+  var tabs=[].slice.call(document.querySelectorAll(".balltabs button"));
+  var cur=0, keep=[null,null];
+
   function mark(i){ tabs.forEach(function(b,k){ b.setAttribute("aria-pressed", k===i?"true":"false"); }); }
+  // パソコンでは2枚とも見えているので、縦位置を動かさない
+  function twoUp(){ return window.matchMedia("(min-width:760px)").matches; }
+
+  // 一覧の先頭。上のバーは貼り付いているので、その分だけ下げて隠れないようにする
+  function listTop(){
+    var y=(window.pageYOffset||0)+tabsBar.getBoundingClientRect().top-(bar?bar.offsetHeight:0)-8;
+    return Math.max(0,y);
+  }
+  function clamp(y){
+    var max=Math.max(0,document.documentElement.scrollHeight-window.innerHeight);
+    return Math.min(Math.max(0,y),max);
+  }
+  // その面の中身の下端。2枚は横に並んでいるためページの高さは長いほうで決まり、
+  // 短い面では最後の1件より下の余白まで送れてしまう。そこを覚えて戻すと空白が出る。
+  function bottom(i){
+    var list=i===0?$("#listSelf"):$("#listOther");
+    return (window.pageYOffset||0)+list.getBoundingClientRect().bottom;
+  }
+  function show(i){
+    if(i===cur||i<0||i>=tabs.length) return;
+    if(!twoUp()){
+      keep[cur]=window.pageYOffset||0;
+      var top=listTop(), end=Math.max(top,bottom(i)-window.innerHeight+24), y=keep[i];
+      // 初めて開く面は先頭から。戻ってきた面は読みかけの位置から。
+      // ただし一覧より上や、最後の1件より下には行かせない。
+      window.scrollTo(0, clamp(y===null ? top : Math.min(Math.max(y,top),end)));
+    }
+    cur=i; mark(i);
+  }
+
   tabs.forEach(function(b,i){
     b.addEventListener("click",function(){
-      mark(i);
+      show(i);
       panes.scrollTo({left:i*panes.clientWidth, behavior:"smooth"});
     });
   });
@@ -961,8 +999,8 @@ $("#addSave").addEventListener("click",function(){
     clearTimeout(t);
     t=setTimeout(function(){
       var w=panes.clientWidth||1;
-      mark(Math.round(panes.scrollLeft/w));
-    },80);
+      show(Math.round(panes.scrollLeft/w));
+    },120);
   });
 })();
 $("#btnHold").addEventListener("click",function(){ holdOpen=!holdOpen; render(); });
