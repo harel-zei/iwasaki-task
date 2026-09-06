@@ -37,7 +37,8 @@ if(v==="dark"||v==="light")document.documentElement.setAttribute("data-theme",v)
 --strike:#b7b4a8;              /* 取り消し線 */
 --doing:#f7fafd;               /* 対応中の行 */
 --amberline:#e8cfa4;--redline:#dfb3af;--blueline:#c5d5e8;--delline:#e6c9c6;
---overlay:rgba(28,28,26,.55)}
+--overlay:rgba(28,28,26,.55);
+--shadow:rgba(28,28,26,.18)}   /* 浮いているボタンの影 */
 
 /* 端末が暗い設定のとき（「明るい」に固定していれば適用しない） */
 @media (prefers-color-scheme:dark){
@@ -48,7 +49,7 @@ if(v==="dark"||v==="light")document.documentElement.setAttribute("data-theme",v)
 --bar:rgba(23,22,20,.97);--btn:#2a2825;--soft:#26241f;--soft2:#312e28;--field:#22201c;--field2:#2a2723;
 --inv:#171614;--due:#3a372f;--dash:#4d4940;--dash2:#5a4c2e;--strike:#6b675e;--doing:#1d242c;
 --amberline:#5a4520;--redline:#5c3330;--blueline:#33465e;--delline:#5c3a37;
---overlay:rgba(0,0,0,.62)}}
+--overlay:rgba(0,0,0,.62);--shadow:rgba(0,0,0,.5)}}
 
 /* 設定画面で「暗い」に固定したとき（端末の設定によらず適用） */
 :root[data-theme="dark"]{color-scheme:dark;
@@ -58,7 +59,7 @@ if(v==="dark"||v==="light")document.documentElement.setAttribute("data-theme",v)
 --bar:rgba(23,22,20,.97);--btn:#2a2825;--soft:#26241f;--soft2:#312e28;--field:#22201c;--field2:#2a2723;
 --inv:#171614;--due:#3a372f;--dash:#4d4940;--dash2:#5a4c2e;--strike:#6b675e;--doing:#1d242c;
 --amberline:#5a4520;--redline:#5c3330;--blueline:#33465e;--delline:#5c3a37;
---overlay:rgba(0,0,0,.62)}
+--overlay:rgba(0,0,0,.62);--shadow:rgba(0,0,0,.5)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;padding:0 0 calc(40px + env(safe-area-inset-bottom));background:var(--bg);color:var(--ink);
 font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Yu Gothic",Meiryo,sans-serif;
@@ -121,6 +122,18 @@ padding:11px 8px;font-size:13.5px;font-family:inherit;font-weight:700;color:var(
   .paneh{display:block;font-size:13.5px;font-weight:700;color:var(--ink2);
   margin:20px 0 2px;padding-bottom:7px;border-bottom:2px solid var(--line)}
 }
+/* 下まで見たあと、一気に上へ戻るボタン。右下に浮かせる。
+   下まで送るまでは出さない（ふだんは画面の邪魔をしない）。 */
+.totop{position:fixed;z-index:50;
+right:calc(16px + env(safe-area-inset-right));bottom:calc(20px + env(safe-area-inset-bottom));
+width:48px;height:48px;padding:0;border-radius:50%;border:1px solid var(--line);
+background:var(--btn);color:var(--ink2);font-size:19px;line-height:1;font-family:inherit;
+box-shadow:0 3px 12px var(--shadow);display:flex;align-items:center;justify-content:center;
+opacity:0;visibility:hidden;transform:translateY(6px);transition:opacity .18s,transform .18s,visibility .18s}
+.totop.on{opacity:1;visibility:visible;transform:none}
+.totop:active{background:var(--soft2)}
+@media (prefers-reduced-motion:reduce){.totop{transition:none;transform:none}}
+
 /* だいぶ先のタスクの格納場所。ふだんは畳んでおき、中身はいつでも確認できる。 */
 .drawer{display:block;width:100%;margin:20px 0 0;padding:12px;border:1px dashed var(--dash);
 border-radius:10px;background:transparent;color:var(--ink2);font-size:13px;font-family:inherit;font-weight:700}
@@ -322,6 +335,8 @@ footer{margin-top:36px;padding-top:14px;border-top:1px solid var(--line);font-si
 
   <footer id="foot"></footer>
 </div>
+
+<button type="button" class="totop" id="btnTop" aria-label="いちばん上へ戻る" title="いちばん上へ戻る">↑</button>
 
 <div class="setup hide" id="setup">
   <div class="card">
@@ -1002,6 +1017,22 @@ $("#addSave").addEventListener("click",function(){
       show(Math.round(panes.scrollLeft/w));
     },120);
   });
+})();
+// 下まで確認したあと、もう一度上を見たくなることがある。右下の丸いボタンで一気に戻る。
+// 下まで送るまでは出さない（ふだんは画面の邪魔をしないため）。
+(function(){
+  var btn=$("#btnTop"), waiting=false;
+  function sync(){ waiting=false; btn.classList.toggle("on",(window.pageYOffset||0)>500); }
+  window.addEventListener("scroll",function(){
+    if(waiting) return; waiting=true; requestAnimationFrame(sync);
+  },{passive:true});
+  window.addEventListener("resize",sync);
+  btn.addEventListener("click",function(){
+    var smooth=!(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches);
+    try{ window.scrollTo({top:0,left:0,behavior:smooth?"smooth":"auto"}); }
+    catch(e){ window.scrollTo(0,0); }   // 古い端末向け
+  });
+  sync();
 })();
 $("#btnHold").addEventListener("click",function(){ holdOpen=!holdOpen; render(); });
 document.querySelectorAll(".filters button").forEach(function(b){
