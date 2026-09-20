@@ -122,7 +122,20 @@ border-left:3px solid var(--blue)}
 .news .nt a{color:inherit;text-decoration:none}
 .news .ns{font-size:13px;color:var(--ink2);display:block;margin-top:5px;line-height:1.65}
 .news .nw{font-size:12.5px;color:var(--ink3);display:block;margin-top:6px;line-height:1.6}
-.news .nl{font-size:12px;font-weight:700;display:inline-block;margin-top:8px}
+.news .nl{font-size:12px;font-weight:700;display:inline-block}
+.news[data-read="1"]{opacity:.5;border-left-color:var(--green)}
+.news[data-read="1"] .nt{text-decoration:line-through;text-decoration-color:var(--strike)}
+.nfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px}
+.readbtn{flex:0 0 auto;margin-left:auto;border:1px solid var(--line);background:var(--btn);
+border-radius:16px;padding:6px 14px;font-size:12.5px;font-family:inherit;font-weight:700;color:var(--ink3)}
+.readbtn[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:var(--inv)}
+/* 本文の要約。長いので畳んでおく。 */
+.nbody{margin-top:8px}
+.nbody>summary{font-size:12.5px;font-weight:700;color:var(--ink3);cursor:pointer;list-style:none;
+padding:5px 0}
+.nbody>summary::-webkit-details-marker{display:none}
+.nbody[open]>summary{margin-bottom:2px}
+.nbp{font-size:13px;color:var(--ink2);line-height:1.8;margin:6px 0 0}
 .tag{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:4px;
 margin-right:6px;background:var(--due);color:var(--ink3);vertical-align:2px}
 .newsh{font-size:12.5px;color:var(--ink3);margin:10px 0 0;line-height:1.6}
@@ -430,6 +443,8 @@ function fallbackCopy(node){
 function normProg(o){
   if(!o||typeof o!=="object") o={};
   if(!o.items||typeof o.items!=="object"||Array.isArray(o.items)) o.items={};
+  // 税務通信の「読んだ」印。記事のIDごとに読んだ時刻を入れる。
+  if(!o.read||typeof o.read!=="object"||Array.isArray(o.read)) o.read={};
   return o;
 }
 // 税務通信の要約。中身が欠けていても画面を止めない。
@@ -439,8 +454,10 @@ function normWeekly(o){
   (Array.isArray(o.items)?o.items:[]).forEach(function(it){
     if(!it||typeof it!=="object") return;
     var t=String(it.title||"").trim(); if(!t) return;
-    items.push({title:t, summary:String(it.summary||""), why:String(it.why||""),
-                tag:String(it.tag||""), url:String(it.url||"")});
+    // 読んだ印は記事のIDで覚える。毎朝の処理が付けるが、無い古い分は並び順から作る。
+    var id=String(it.id||"").trim() || ("w-"+String(o.issue||"?")+"-"+(items.length+1));
+    items.push({id:id, title:t, summary:String(it.summary||""), why:String(it.why||""),
+                tag:String(it.tag||""), url:String(it.url||""), body:String(it.body||"")});
   });
   return {issue:String(o.issue||""), date:String(o.date||""),
           headline:String(o.headline||""), items:items};
@@ -600,7 +617,11 @@ function removeInboxItem(id){
   inboxDirty=true; saveLocal(); render(); pushInbox();
 }
 function merge(remote,local){
-  var out={updated_at:local.updated_at,items:{}};
+  var out={updated_at:local.updated_at,items:{},read:{}};
+  // 読んだ印は「押した側が正しい」。どちらかに付いていれば残す（消える事故を避ける）。
+  var rr=(remote.read||{}), lr=(local.read||{});
+  Object.keys(rr).forEach(function(k){ out.read[k]=rr[k]; });
+  Object.keys(lr).forEach(function(k){ if(!out.read[k]||lr[k]>out.read[k]) out.read[k]=lr[k]; });
   var keys={};
   Object.keys(remote.items||{}).forEach(function(k){keys[k]=1});
   Object.keys(local.items||{}).forEach(function(k){keys[k]=1});
@@ -766,16 +787,19 @@ function renderNews(){
   var box=$("#listNews"), head=$("#newsh");
   box.innerHTML=""; head.textContent="";
   var n=(weekly&&weekly.items)?weekly.items.length:0;
-  $("#nNews").textContent=n?" "+n:"";
-  $("#hNews").textContent=n?" "+n+"件":"";
   if(!n){
+    $("#nNews").textContent=""; $("#hNews").textContent="";
     box.appendChild(el("p","cnt","今週の税務通信は、まだ届いていません。"));
     return;
   }
+  var unread=weekly.items.filter(function(it){ return !prog.read[it.id]; }).length;
+  $("#nNews").textContent=unread?" "+unread:"";
+  $("#hNews").textContent=unread?" 未読"+unread+"件":" 全部読みました";
   head.textContent=[weekly.issue,weekly.date?weekly.date+" 号":"" ]
     .filter(Boolean).join("　")+(weekly.headline?"　"+weekly.headline:"");
   weekly.items.forEach(function(it){
     var d=el("div","news");
+    if(prog.read[it.id]) d.setAttribute("data-read","1");
     var t=el("div","nt");
     if(it.tag) t.appendChild(el("span","tag",it.tag));
     if(it.url){
@@ -785,13 +809,36 @@ function renderNews(){
     } else t.appendChild(document.createTextNode(it.title));
     d.appendChild(t);
     if(it.summary) d.appendChild(el("div","ns",it.summary));
+    // 本文の要約。長いので畳んでおく（一覧が伸びると読む気が失せるため）。
+    if(it.body){
+      var det=document.createElement("details"); det.className="nbody";
+      var sm=document.createElement("summary"); sm.textContent="▼ 本文の要約を読む";
+      det.appendChild(sm);
+      it.body.split("\n").forEach(function(line){
+        if(line.trim()) det.appendChild(el("p","nbp",line));
+      });
+      d.appendChild(det);
+    }
     if(it.why) d.appendChild(el("div","nw","▶ "+it.why));
+    var foot=el("div","nfoot");
     if(it.url){
       var l=document.createElement("a");
       l.className="nl"; l.href=it.url; l.target="_blank"; l.rel="noopener noreferrer";
       l.textContent="本文を読む（税務通信）";
-      d.appendChild(l);
+      foot.appendChild(l);
     }
+    // 読み終わったら押す。progress.json に残るので、機種を変えても引き継がれる。
+    var rb=el("button","readbtn", prog.read[it.id]?"✓ 読んだ":"読んだ");
+    rb.type="button";
+    rb.setAttribute("aria-pressed", prog.read[it.id]?"true":"false");
+    rb.addEventListener("click",function(){
+      if(prog.read[it.id]) delete prog.read[it.id];
+      else prog.read[it.id]=new Date().toISOString();
+      dirty=true; saveLocal(); renderNews(); schedule();
+      status("pend","未同期の変更があります");
+    });
+    foot.appendChild(rb);
+    d.appendChild(foot);
     box.appendChild(d);
   });
 }
