@@ -115,10 +115,22 @@ padding:11px 8px;font-size:13.5px;font-family:inherit;font-weight:700;color:var(
 .panes::-webkit-scrollbar{display:none}
 .pane{flex:0 0 100%;min-width:0;scroll-snap-align:start}
 .paneh{display:none}
+/* 週刊の記事。読み物なので、やることの一覧とは見た目を分ける。 */
+.news{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:9px 0;
+border-left:3px solid var(--blue)}
+.news .nt{font-weight:700;font-size:14.5px;display:block;line-height:1.5}
+.news .nt a{color:inherit;text-decoration:none}
+.news .ns{font-size:13px;color:var(--ink2);display:block;margin-top:5px;line-height:1.65}
+.news .nw{font-size:12.5px;color:var(--ink3);display:block;margin-top:6px;line-height:1.6}
+.news .nl{font-size:12px;font-weight:700;display:inline-block;margin-top:8px}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:4px;
+margin-right:6px;background:var(--due);color:var(--ink3);vertical-align:2px}
+.newsh{font-size:12.5px;color:var(--ink3);margin:10px 0 0;line-height:1.6}
 @media (min-width:760px){
   .balltabs,.swipehint{display:none}
-  .panes{overflow:visible;gap:20px}
+  .panes{overflow:visible;gap:20px;flex-wrap:wrap}
   .pane{flex:1 1 0}
+  .pane.newspane{flex:1 1 100%}
   .paneh{display:block;font-size:13.5px;font-weight:700;color:var(--ink2);
   margin:20px 0 2px;padding-bottom:7px;border-bottom:2px solid var(--line)}
 }
@@ -321,10 +333,13 @@ footer{margin-top:36px;padding-top:14px;border-top:1px solid var(--line);font-si
   <div class="balltabs" id="balltabs">
     <button type="button" data-ball="self" aria-pressed="true">タスク<span class="n" id="nSelf"></span></button>
     <button type="button" data-ball="other" aria-pressed="false">相手ボール<span class="n" id="nOther"></span></button>
+    <button type="button" data-ball="news" aria-pressed="false">税務通信<span class="n" id="nNews"></span></button>
   </div>
   <div class="panes" id="panes">
     <div class="pane"><div class="paneh">タスク<span class="n" id="hSelf"></span></div><div id="listSelf"></div></div>
     <div class="pane"><div class="paneh">相手ボール<span class="n" id="hOther"></span></div><div id="listOther"></div></div>
+    <div class="pane newspane"><div class="paneh">税務通信<span class="n" id="hNews"></span></div>
+      <p class="newsh" id="newsh"></p><div id="listNews"></div></div>
   </div>
 
   <button class="drawer hide" id="btnHold"></button>
@@ -372,6 +387,8 @@ var LS="harel_stocktake_v1";
 var cfg={repo:"",branch:"main",token:""};
 var doc=null, prog={updated_at:null,items:{}}, progSha=null;
 var inbox={updated_at:null,items:[]}, inboxSha=null, inboxDirty=false, inboxBusy=false;
+// 税務通信の要約。読むだけの欄なので、進捗もボタンも持たない。
+var weekly=null;
 var filter="open", dirty=false, timer=null, busy=false, holdOpen=false;
 
 var $=function(s){return document.querySelector(s)};
@@ -415,6 +432,19 @@ function normProg(o){
   if(!o.items||typeof o.items!=="object"||Array.isArray(o.items)) o.items={};
   return o;
 }
+// 税務通信の要約。中身が欠けていても画面を止めない。
+function normWeekly(o){
+  if(!o||typeof o!=="object") return null;
+  var items=[];
+  (Array.isArray(o.items)?o.items:[]).forEach(function(it){
+    if(!it||typeof it!=="object") return;
+    var t=String(it.title||"").trim(); if(!t) return;
+    items.push({title:t, summary:String(it.summary||""), why:String(it.why||""),
+                tag:String(it.tag||""), url:String(it.url||"")});
+  });
+  return {issue:String(o.issue||""), date:String(o.date||""),
+          headline:String(o.headline||""), items:items};
+}
 function normInbox(o){
   if(!o||typeof o!=="object") o={};
   if(!Array.isArray(o.items)) o.items=[];
@@ -429,12 +459,13 @@ function loadLocal(){
     if(o.prog) prog=normProg(o.prog);
     if(o.doc) doc=o.doc;
     if(o.inbox) inbox=normInbox(o.inbox);
+    if(o.weekly) weekly=normWeekly(o.weekly);
     if(o.dirty) dirty=true;
     if(o.inboxDirty) inboxDirty=true;
   }catch(e){}
 }
 function saveLocal(){
-  try{localStorage.setItem(LS,JSON.stringify({cfg:cfg,prog:prog,doc:doc,inbox:inbox,dirty:dirty,inboxDirty:inboxDirty}))}catch(e){}
+  try{localStorage.setItem(LS,JSON.stringify({cfg:cfg,prog:prog,doc:doc,inbox:inbox,weekly:weekly,dirty:dirty,inboxDirty:inboxDirty}))}catch(e){}
 }
 function status(kind,msg){
   var d=$("#dot"); d.className="dot"+(kind?" "+kind:"");
@@ -469,9 +500,14 @@ function b64encode(str){
 function pull(){
   if(!cfg.repo||!cfg.token){ status("err","未設定です。右上の「設定」から接続してください"); return Promise.resolve(); }
   status("pend","読み込み中…");
-  return Promise.all([api("data/tasks.json"),api("data/progress.json"),api("data/inbox.json")])
+  return Promise.all([api("data/tasks.json"),api("data/progress.json"),api("data/inbox.json"),
+                      api("data/weekly.json")])
    .then(function(res){
      if(res[0] && !res[0].__missing) doc=JSON.parse(b64decode(res[0].content));
+     // 税務通信の要約。まだ無くても画面は止めない（読むだけなので進捗も持たない）。
+     if(res[3] && !res[3].__missing){
+       try{ weekly=normWeekly(JSON.parse(b64decode(res[3].content))); }catch(e){ weekly=null; }
+     }
      if(res[1] && !res[1].__missing){
        progSha=res[1].sha;
        var remote=normProg(JSON.parse(b64decode(res[1].content)));
@@ -724,7 +760,43 @@ function staleDays(ds){
   var p=ds.split("-"); var docday=new Date(+p[0],+p[1]-1,+p[2]);
   return Math.max(0,Math.round((today-docday)/86400000));
 }
+// 税務通信の欄。週に1度、毎朝の処理が data/weekly.json に書いたものを読むだけ。
+// 本文は先方のサイトにあるので、ここに置くのは要点と入口のリンクまで。
+function renderNews(){
+  var box=$("#listNews"), head=$("#newsh");
+  box.innerHTML=""; head.textContent="";
+  var n=(weekly&&weekly.items)?weekly.items.length:0;
+  $("#nNews").textContent=n?" "+n:"";
+  $("#hNews").textContent=n?" "+n+"件":"";
+  if(!n){
+    box.appendChild(el("p","cnt","今週の税務通信は、まだ届いていません。"));
+    return;
+  }
+  head.textContent=[weekly.issue,weekly.date?weekly.date+" 号":"" ]
+    .filter(Boolean).join("　")+(weekly.headline?"　"+weekly.headline:"");
+  weekly.items.forEach(function(it){
+    var d=el("div","news");
+    var t=el("div","nt");
+    if(it.tag) t.appendChild(el("span","tag",it.tag));
+    if(it.url){
+      var a=document.createElement("a");
+      a.href=it.url; a.target="_blank"; a.rel="noopener noreferrer";
+      a.textContent=it.title; t.appendChild(a);
+    } else t.appendChild(document.createTextNode(it.title));
+    d.appendChild(t);
+    if(it.summary) d.appendChild(el("div","ns",it.summary));
+    if(it.why) d.appendChild(el("div","nw","▶ "+it.why));
+    if(it.url){
+      var l=document.createElement("a");
+      l.className="nl"; l.href=it.url; l.target="_blank"; l.rel="noopener noreferrer";
+      l.textContent="本文を読む（税務通信）";
+      d.appendChild(l);
+    }
+    box.appendChild(d);
+  });
+}
 function render(){
+  renderNews();
   if(!doc){ $("#listSelf").innerHTML=""; $("#listOther").innerHTML=""; return; }
   $("#eyebrow").textContent=doc.subtitle||"";
   if(doc.title) $("#title").textContent=doc.title;
@@ -970,7 +1042,9 @@ $("#addSave").addEventListener("click",function(){
 (function(){
   var panes=$("#panes"), tabsBar=$("#balltabs"), bar=document.querySelector(".statusbar");
   var tabs=[].slice.call(document.querySelectorAll(".balltabs button"));
-  var cur=0, keep=[null,null];
+  var cur=0, keep=[];
+  var lists=["#listSelf","#listOther","#listNews"];
+  tabs.forEach(function(){ keep.push(null); });
 
   function mark(i){ tabs.forEach(function(b,k){ b.setAttribute("aria-pressed", k===i?"true":"false"); }); }
   // パソコンでは2枚とも見えているので、縦位置を動かさない
@@ -988,7 +1062,8 @@ $("#addSave").addEventListener("click",function(){
   // その面の中身の下端。2枚は横に並んでいるためページの高さは長いほうで決まり、
   // 短い面では最後の1件より下の余白まで送れてしまう。そこを覚えて戻すと空白が出る。
   function bottom(i){
-    var list=i===0?$("#listSelf"):$("#listOther");
+    var list=$(lists[i]||lists[0]);
+    if(!list) return (window.pageYOffset||0)+window.innerHeight;
     return (window.pageYOffset||0)+list.getBoundingClientRect().bottom;
   }
   function show(i){
