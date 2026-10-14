@@ -152,6 +152,11 @@ select,input[type=text]{font-family:inherit;font-size:15px;padding:5px 8px;borde
 .gridt th.gh div{width:1em;margin:0 auto;font-size:15px;font-weight:700;color:var(--ink-1);
   line-height:1.14;text-align:center;word-break:break-all;white-space:normal;
   max-height:258px;overflow:hidden}
+/* 横書きの見出し（.hh のとき）。幅は取るが、そのまま読める */
+.gridt.hh th.gh{height:auto;width:92px;min-width:92px;padding:9px 9px;vertical-align:bottom}
+.gridt.hh th.gh div{width:auto;margin:0;font-size:14px;line-height:1.35;text-align:left;
+  word-break:break-word;max-height:none;
+  display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
 .gridt{--c1:270px}
 .gridt th.gh0{position:sticky;top:0;left:0;z-index:4;background:var(--plane);border-bottom:1px solid var(--ring);text-align:left;padding:6px 10px;writing-mode:horizontal-tb;
   width:var(--c1);min-width:var(--c1);max-width:var(--c1)}
@@ -214,14 +219,30 @@ select,input[type=text]{font-family:inherit;font-size:15px;padding:5px 8px;borde
 .svct th.sv div{width:1em;margin:0 auto;font-size:15.5px;font-weight:700;color:var(--ink-1);
   line-height:1.14;text-align:center;word-break:break-all;white-space:normal;
   max-height:258px;overflow:hidden}
+/* 横書きの見出し（.hh のとき） */
+.svct.hh th.sv{height:auto;width:104px;min-width:104px;padding:9px 9px 13px;vertical-align:bottom}
+.svct.hh th.sv div{width:auto;margin:0;font-size:14px;line-height:1.35;text-align:left;
+  word-break:break-word;max-height:none;
+  display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
 .svct th.sv i.cbar{position:absolute;left:0;right:0;bottom:0;height:3px}   /* 区分の色 */
+/* 見出しの向きを切り替えるボタン */
+.hmode{display:inline-flex;border:1px solid var(--axis);border-radius:8px;overflow:hidden}
+.hmode button{background:transparent;border:0;padding:6px 12px;color:var(--ink-2);font-size:13px}
+.hmode button[aria-pressed="true"]{background:var(--series-1);color:#fff;font-weight:700}
+/* いま入力している列の名前（見出しが読み取りにくいときの保険） */
+.curcol{font-size:13.5px;color:var(--ink-2);min-width:200px}
+.curcol b{color:var(--ink-1)}
+/* 見出しにマウスを乗せた列を目立たせる */
+.gridt th.gh:hover,.svct th.sv:hover{background:rgba(42,120,214,.18)}
+
 /* 列の境界をつまんで動かすためのつまみ（1列目の幅を変える） */
 .colres{position:absolute;top:0;right:-4px;bottom:0;width:9px;cursor:col-resize;z-index:6;touch-action:none}
 .colres::after{content:'';position:absolute;left:3px;top:0;bottom:0;width:3px;border-radius:2px;background:transparent}
 .colres:hover::after,.colres.dragging::after{background:var(--series-1)}
 
-/* 縦書きで90度回す文字（長音・カッコなど） */
-.vrot{display:inline-block;transform:rotate(90deg)}
+/* 長音・カッコなどは、縦書きのときだけ90度回す（横書きではそのまま） */
+.vrot{display:inline-block}
+.gridt:not(.hh) .vrot,.svct:not(.hh) .vrot{transform:rotate(90deg)}
 .svct tbody tr:hover td{background:rgba(127,127,127,.10)}
 .svct td.svc:nth-child(even){background:rgba(127,127,127,.045)}
 .svct{--c1:270px}
@@ -798,6 +819,30 @@ function renderKarte(){
   };
 }
 
+/* ---- 見出しの向き（横書き／縦書き）の切り替え ----
+   横書き … そのまま読めるが列幅を取る（初期設定）
+   縦書き … 幅は狭いが読みにくい
+   どちらが良いかは好みと画面の大きさによるので、端末ごとに選べるようにした。 */
+const HEAD_KEY='harel_headmode';
+const headMode = () => { try{ return localStorage.getItem(HEAD_KEY)==='v' ? 'v' : 'h'; }catch(e){ return 'h'; } };
+function headModeBtns(){
+  const m=headMode();
+  return `<span class="hmode" id="hmode">
+    <button data-h="h" aria-pressed="${m==='h'}">見出し：横書き</button>
+    <button data-h="v" aria-pressed="${m==='v'}">縦書き</button></span>`;
+}
+/** 表に現在の向きを反映する */
+function applyHeadMode(table){
+  if(table) table.classList.toggle('hh', headMode()==='h');
+}
+/** 切り替えボタンを有効にする（押すと再描画） */
+function bindHeadMode(redraw){
+  const box=$('#hmode'); if(!box) return;
+  box.querySelectorAll('button').forEach(b=>{
+    b.onclick=()=>{ try{ localStorage.setItem(HEAD_KEY, b.dataset.h); }catch(e){} redraw(); };
+  });
+}
+
 /* ---- 1列目の幅をドラッグで変える（顧問先の列の境界を動かす） ---- */
 const COLW_MIN=90, COLW_MAX=560;
 
@@ -901,6 +946,7 @@ function renderSvc(){
     <select id="sv_kind">${kindOpts}</select>
     <input type="text" id="sv_q" placeholder="顧問先名・コードで絞り込み" value="${esc(SV.q)}"
       style="font-family:inherit;font-size:15px;padding:5px 8px;border:1px solid var(--axis);border-radius:6px;background:var(--surface-1);color:var(--ink-1)">
+    ${headModeBtns()}
     <span class="cnt" style="font-size:14px;color:var(--ink-3)">${list.length} 社 × ${cols.length} 業務</span>
     <span class="sub" id="sv_msg" style="font-size:14px;color:var(--ink-3)"></span>
   </div>
@@ -911,6 +957,8 @@ function renderSvc(){
     <tbody>${body}</tbody>
   </table></div>`;
 
+  applyHeadMode($('#v-svc .svct'));
+  bindHeadMode(renderSvc);
   attachColResizer($('#v-svc .svct'), $('#v-svc .svct th.sv0'), 'harel_colw_svc');
   $('#sv_cat').onchange  =e=>{SV.cat=e.target.value; renderSvc();};
   $('#sv_mon').onchange  =e=>{SV.month=e.target.value; renderSvc();};
@@ -1245,7 +1293,9 @@ function renderGrid(){
     <select id="gr_per">${perOpts}</select>
     <select id="gr_mon">${monOpts}</select>
     <select id="gr_staff">${staffOpts}</select>
+    ${headModeBtns()}
     <span class="cnt">${rows.length} 社（行）</span>
+    <span class="curcol" id="gr_col"></span>
   </div>
   <div class="hint">旧管理表と同じ「行=顧問先 × 列=工程」で、<b>セルに日付を直接入力</b>できます（例 <b>5/27</b>）。
     空のセルで <b>スペース</b>を押すと今日の日付が入ります。空に戻すと未実施になります。
@@ -1256,6 +1306,8 @@ function renderGrid(){
     <tbody>${body}</tbody>
   </table></div>`;
 
+  applyHeadMode($('#v-grid .gridt'));
+  bindHeadMode(renderGrid);
   attachColResizer($('#v-grid .gridt'), $('#v-grid .gridt th.gh0'), 'harel_colw_grid');
   $('#gr_tid').onchange  =e=>{GR.tid=e.target.value; GR.period='nearest'; renderGrid();};
   $('#gr_per').onchange  =e=>{GR.period=e.target.value; renderGrid();};
@@ -1361,8 +1413,21 @@ function commitGdate(el){
   }
 }
 document.addEventListener('focusin',e=>{
-  const el=e.target.closest('input.gdate'); if(el) el.select();
+  const el=e.target.closest('input.gdate'); if(!el) return;
+  el.select();
+  showCurCol(el);
 });
+document.addEventListener('mouseover',e=>{
+  const el=e.target.closest('input.gdate'); if(el) showCurCol(el);
+});
+
+/** いま触っている列の工程名を上部に出す（見出しが短く切れていても分かるように） */
+function showCurCol(el){
+  const box=$('#gr_col'); if(!box) return;
+  const tpl=TMAP[GR.tid]; if(!tpl) return;
+  const it=tpl.items[+el.dataset.c];
+  box.innerHTML = it ? `この列：<b>${esc(it.t.replace(/^★ /,''))}</b>` : '';
+}
 document.addEventListener('change',e=>{
   const el=e.target.closest('input.gdate'); if(el) commitGdate(el);
 });
